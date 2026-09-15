@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import CheatCard from '@/components/CheatCard.astro';
+import { categories } from '@/data/catalog';
+
+export async function getStaticPaths() {
+  return categories.map((category) => ({ params: { category: category.slug }, props: { category } }));
+}
+
+const { category } = Astro.props;
+const entries = (await getCollection('cheatsheets'))
+  .filter((entry) => entry.data.category === category.slug)
+  .sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title={category.label} description={category.description}>
+  <main id="main-content" class="listing-page">
+    <section class="shell listing-header" data-pagefind-ignore>
+      <a class="back-link" href="/">← Усі категорії</a>
+      <div class="category-hero-mark" aria-hidden="true">{category.mark}</div>
+      <p class="eyebrow">Категорія</p>
+      <h1>{category.label}</h1>
+      <p>{category.description}. Кожна картка містить ризик, пояснення параметрів і перевірку результату.</p>
+    </section>
+    <section class="shell listing-content" aria-label={`Картки категорії ${category.label}`}>
+      <div class="listing-count">{entries.length} {entries.length === 1 ? 'картка' : 'картки'}</div>
+      {entries.length > 0
+        ? <div class="cheat-grid">{entries.map((entry) => <CheatCard entry={entry} />)}</div>
+        : <div class="empty-panel"><p>Картки цієї категорії готуються до першого релізу.</p><a href="/">Повернутися до каталогу</a></div>}
+    </section>
+  </main>
+</BaseLayout>

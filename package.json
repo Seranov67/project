@@ -1,34 +1,24 @@
 {
-  "name": "cheatsheet-hub",
+  "name": "opscards",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "dev": "astro dev",
+    "build": "node scripts/validate-content.mjs && astro check && astro build && pagefind --site dist && node scripts/validate-build.mjs",
+    "preview": "astro preview",
+    "check": "node scripts/validate-content.mjs && astro check"
   },
   "dependencies": {
-    "next": "14.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "lucide-react": "^0.292.0",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0",
-    "prismjs": "^1.29.0",
-    "react-hot-toast": "^2.4.1"
+    "@astrojs/sitemap": "3.7.4",
+    "astro": "7.3.2",
+    "pagefind": "1.5.2"
   },
   "devDependencies": {
-    "typescript": "^5.2.2",
-    "@types/node": "^20.8.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/prismjs": "^1.26.3",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.51.0",
-    "eslint-config-next": "14.0.0",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5"
+    "@astrojs/check": "0.9.10",
+    "typescript": "6.0.3"
   }
 }

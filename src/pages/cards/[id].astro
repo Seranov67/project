@@ -1,0 +1,92 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import CheatCard from '@/components/CheatCard.astro';
+import ContentEnhancements from '@/components/ContentEnhancements.astro';
+import { formatDate, getCategory, platformLabels, riskLabels } from '@/data/catalog';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('cheatsheets');
+  return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'cheatsheets'>;
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const category = getCategory(entry.data.category);
+const related = (await getCollection('cheatsheets'))
+  .filter((candidate) => candidate.id !== entry.id && candidate.data.category === entry.data.category)
+  .slice(0, 2);
+const sectionHeadings = headings.filter((heading) => heading.depth === 2);
+---
+
+<BaseLayout title={entry.data.title} description={entry.data.description}>
+  <main id="main-content" class="card-page">
+    <div class="shell breadcrumb" aria-label="Навігаційний ланцюжок" data-pagefind-ignore>
+      <a href="/">Каталог</a><span aria-hidden="true">/</span>
+      <a href={`/category/${entry.data.category}`}>{category?.label}</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{entry.data.title}</span>
+    </div>
+
+    <article class="shell cheat-layout" data-pagefind-body>
+      <div class="cheat-main">
+        <header class="cheat-header">
+          <div class="card-topline">
+            <span class="category-label"><span aria-hidden="true">{category?.mark}</span> {category?.label}</span>
+            <span class={`risk-badge risk-${entry.data.risk}`}>{riskLabels[entry.data.risk]}</span>
+          </div>
+          <h1 data-pagefind-meta="title">{entry.data.title}</h1>
+          <p class="cheat-description" data-pagefind-meta="description">{entry.data.description}</p>
+          <div class="fact-row">
+            <span><small>Платформа</small>{entry.data.platforms.map((platform) => platformLabels[platform]).join(' · ')}</span>
+            <span><small>Перевірено з</small>{entry.data.testedWith}</span>
+            <span><small>Оновлено</small><time datetime={entry.data.updated.toISOString()}>{formatDate(entry.data.updated)}</time></span>
+          </div>
+          <div hidden>
+            <span data-pagefind-filter={`category:${entry.data.category}`}></span>
+            {entry.data.platforms.map((platform) => <span data-pagefind-filter={`platform:${platform}`}></span>)}
+            <span data-pagefind-meta={`tags:${entry.data.tags.join(', ')}`}></span>
+          </div>
+        </header>
+
+        <div class="prose">
+          <Content />
+        </div>
+
+        <footer class="source-panel" data-pagefind-ignore>
+          <div>
+            <p class="eyebrow">Офіційні джерела</p>
+            <h2>Звірити синтаксис</h2>
+          </div>
+          <ul>
+            {entry.data.sources.map((source) => (
+              <li><a href={source.url} rel="noreferrer">{source.label}<span aria-hidden="true"> ↗</span></a></li>
+            ))}
+          </ul>
+        </footer>
+      </div>
+
+      <aside class="cheat-aside" aria-label="На цій сторінці" data-pagefind-ignore>
+        <div class="toc-panel">
+          <p>На цій сторінці</p>
+          <ol>
+            {sectionHeadings.map((heading) => <li><a href={`#${heading.slug}`}>{heading.text}</a></li>)}
+          </ol>
+        </div>
+      </aside>
+    </article>
+
+    {related.length > 0 && (
+      <section class="related shell" aria-labelledby="related-title" data-pagefind-ignore>
+        <div class="section-heading compact">
+          <div><p class="eyebrow">Далі за темою</p><h2 id="related-title">Пов’язані картки</h2></div>
+        </div>
+        <div class="cheat-grid related-grid">{related.map((item) => <CheatCard entry={item} />)}</div>
+      </section>
+    )}
+  </main>
+  <ContentEnhancements />
+</BaseLayout>

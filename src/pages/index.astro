@@ -1,0 +1,108 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import CheatCard from '@/components/CheatCard.astro';
+import { categories } from '@/data/catalog';
+
+const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout>
+  <main id="main-content">
+    <section class="hero shell" aria-labelledby="hero-title" data-pagefind-ignore>
+      <div class="hero-copy">
+        <p class="eyebrow">DevOps-first довідник</p>
+        <h1 id="hero-title">Команда. Контекст.<br /><em>Перевірка.</em></h1>
+        <p class="hero-lede">Короткі сценарії для Linux та інфраструктури: що виконати, який ризик і як переконатися, що все спрацювало.</p>
+      </div>
+      <button class="hero-search" type="button" data-open-search aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+        <span>
+          <strong>Знайти команду</strong>
+          <small>docker logs, systemctl, HTTP 500…</small>
+        </span>
+        <kbd>/</kbd>
+      </button>
+      <div class="hero-proof" aria-label="Властивості довідника">
+        <span><strong>{entries.length}</strong> перевірених карток</span>
+        <span><strong>≤ 8</strong> сценаріїв на сторінку</span>
+        <span><strong>0</strong> акаунтів і трекерів</span>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="catalog" aria-labelledby="catalog-title">
+      <div class="shell">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Каталог</p>
+            <h2 id="catalog-title">Польові картки</h2>
+          </div>
+          <p>Відфільтруйте інструмент, відкрийте сценарій і скопіюйте команду.</p>
+        </div>
+
+        <div class="filters" aria-label="Фільтри каталогу">
+          <div class="filter-group" role="group" aria-label="Категорія">
+            <button class="filter-chip is-active" type="button" data-category-filter="all" aria-pressed="true">Усі</button>
+            {categories.map((category) => (
+              <button class="filter-chip" type="button" data-category-filter={category.slug} aria-pressed="false">
+                <span aria-hidden="true">{category.mark}</span> {category.label}
+              </button>
+            ))}
+          </div>
+          <label class="platform-filter">
+            <span>Платформа</span>
+            <select data-platform-filter>
+              <option value="all">Усі платформи</option>
+              <option value="linux">Linux</option>
+              <option value="windows">Windows</option>
+              <option value="macos">macOS</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="cheat-grid" data-catalog-grid>
+          {entries.map((entry) => <CheatCard entry={entry} />)}
+        </div>
+        <p class="catalog-empty" data-catalog-empty hidden>Для цієї комбінації ще немає карток.</p>
+      </div>
+    </section>
+
+    <section class="principle-strip" aria-label="Принцип OpsCards" data-pagefind-ignore>
+      <div class="shell principle-inner">
+        <p>Не просто <code>що виконати</code>, а й <strong>що зміниться</strong> та <strong>як це перевірити</strong>.</p>
+        <a href="/about">Як ми перевіряємо картки <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  const categoryButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-category-filter]'));
+  const platformSelect = document.querySelector<HTMLSelectElement>('[data-platform-filter]');
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-catalog-card]'));
+  const empty = document.querySelector<HTMLElement>('[data-catalog-empty]');
+  let activeCategory = 'all';
+
+  const applyFilters = () => {
+    const platform = platformSelect?.value ?? 'all';
+    let visible = 0;
+    for (const card of cards) {
+      const categoryMatch = activeCategory === 'all' || card.dataset.category === activeCategory;
+      const platformMatch = platform === 'all' || (card.dataset.platforms ?? '').split(',').includes(platform);
+      card.hidden = !(categoryMatch && platformMatch);
+      if (!card.hidden) visible += 1;
+    }
+    if (empty) empty.hidden = visible !== 0;
+  };
+
+  categoryButtons.forEach((button) => button.addEventListener('click', () => {
+    activeCategory = button.dataset.categoryFilter ?? 'all';
+    categoryButtons.forEach((candidate) => {
+      const active = candidate === button;
+      candidate.classList.toggle('is-active', active);
+      candidate.setAttribute('aria-pressed', String(active));
+    });
+    applyFilters();
+  }));
+  platformSelect?.addEventListener('change', applyFilters);
+</script>
