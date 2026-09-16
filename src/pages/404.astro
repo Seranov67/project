@@ -1,0 +1,15 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Сторінку не знайдено" noindex>
+  <main id="main-content" class="not-found shell">
+    <p class="error-code">404 / command not found</p>
+    <h1>Цієї картки немає.</h1>
+    <p>Можливо, адресу змінено або шпаргалка ще не увійшла до каталогу.</p>
+    <div class="not-found-actions">
+      <a class="primary-link" href="/">До каталогу</a>
+      <button class="secondary-button" type="button" data-open-search>Спробувати пошук</button>
+    </div>
+  </main>
+</BaseLayout>

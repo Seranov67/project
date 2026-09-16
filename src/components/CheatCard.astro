@@ -1,0 +1,35 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getCategory, platformLabels, riskLabels } from '@/data/catalog';
+
+interface Props {
+  entry: CollectionEntry<'cheatsheets'>;
+}
+
+const { entry } = Astro.props;
+const category = getCategory(entry.data.category);
+---
+
+<article
+  class="cheat-card"
+  data-catalog-card
+  data-category={entry.data.category}
+  data-platforms={entry.data.platforms.join(',')}
+>
+  <div class="card-topline">
+    <a class="category-label" href={`/category/${entry.data.category}`}>
+      <span aria-hidden="true">{category?.mark}</span> {category?.label}
+    </a>
+    <span class={`risk-badge risk-${entry.data.risk}`}>{riskLabels[entry.data.risk]}</span>
+  </div>
+  <h3><a href={`/cards/${entry.id}`}>{entry.data.title}</a></h3>
+  <p>{entry.data.description}</p>
+  <div class="card-meta">
+    <span>{entry.data.testedWith}</span>
+    <span aria-hidden="true">·</span>
+    <span>{entry.data.platforms.map((platform) => platformLabels[platform]).join(' / ')}</span>
+  </div>
+  <a class="card-link" href={`/cards/${entry.id}`} aria-label={`Відкрити шпаргалку «${entry.data.title}»`}>
+    Відкрити картку <span aria-hidden="true">→</span>
+  </a>
+</article>

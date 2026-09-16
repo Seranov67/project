@@ -1,0 +1,41 @@
+<header class="site-header">
+  <div class="shell header-inner">
+    <a class="brand" href="/" aria-label="OpsCards — на головну">
+      <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+      <span>OpsCards</span>
+    </a>
+    <nav class="header-nav" aria-label="Основна навігація">
+      <a href="/#catalog">Каталог</a>
+      <a href="/about">Про довідник</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" type="button" data-open-search aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+        <span>Пошук</span>
+        <kbd>/</kbd>
+      </button>
+      <button class="icon-button" type="button" data-theme-toggle aria-label="Змінити колірну схему" aria-pressed="false">
+        <svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg>
+        <svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const themeToggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const root = document.documentElement;
+  const isDark = () => root.dataset.theme
+    ? root.dataset.theme === 'dark'
+    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  const syncThemeToggle = () => themeToggle?.setAttribute('aria-pressed', String(isDark()));
+  syncThemeToggle();
+
+  themeToggle?.addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('opscards-theme', next); } catch {}
+    syncThemeToggle();
+  });
+</script>

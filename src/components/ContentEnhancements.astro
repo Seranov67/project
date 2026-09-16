@@ -1,0 +1,45 @@
+<script>
+  const copyText = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+  };
+
+  document.querySelectorAll<HTMLElement>('.prose pre').forEach((pre) => {
+    const code = pre.querySelector('code');
+    if (!code || pre.querySelector('.copy-button')) return;
+    const button = document.createElement('button');
+    button.className = 'copy-button';
+    button.type = 'button';
+    button.textContent = 'Копіювати';
+    button.setAttribute('aria-label', 'Копіювати команду');
+    button.addEventListener('click', async () => {
+      try {
+        await copyText(code.textContent ?? '');
+        button.textContent = 'Скопійовано';
+        button.dataset.copied = 'true';
+      } catch {
+        button.textContent = 'Не вдалося';
+      }
+      window.setTimeout(() => {
+        button.textContent = 'Копіювати';
+        delete button.dataset.copied;
+      }, 1600);
+    });
+    pre.append(button);
+  });
+
+  document.querySelectorAll<HTMLElement>('.prose h2[id], .prose h3[id]').forEach((heading) => {
+    const anchor = document.createElement('a');
+    anchor.className = 'heading-anchor';
+    anchor.href = `#${heading.id}`;
+    anchor.textContent = '#';
+    anchor.setAttribute('aria-label', `Посилання на розділ «${heading.textContent?.trim() ?? ''}»`);
+    heading.append(anchor);
+  });
+
+  document.querySelectorAll<HTMLElement>('.prose blockquote').forEach((note) => {
+    const text = note.textContent?.toLocaleLowerCase('uk') ?? '';
+    if (text.includes('незворотно')) note.classList.add('risk-note-destructive');
+    else if (text.includes('безпечно')) note.classList.add('risk-note-safe');
+    else note.classList.add('risk-note-changes');
+  });
+</script>
