@@ -15,6 +15,7 @@ const cmd = entry.data.quickCmd;
 <article
   class={`cheat-card${featured ? ' cheat-card--featured' : ''}`}
   data-catalog-card
+  data-card-id={entry.id}
   data-category={entry.data.category}
   data-platforms={entry.data.platforms.join(',')}
 >
@@ -24,16 +25,21 @@ const cmd = entry.data.quickCmd;
     </a>
     <span class={`risk-badge risk-${entry.data.risk}`}>{riskLabels[entry.data.risk]}</span>
   </div>
-  <h3><a href={`/cards/${entry.id}`}>{entry.data.title}</a></h3>
+  <h3>
+    <a href={`/cards/${entry.id}`} data-open-drawer={entry.id}>
+      {entry.data.title}
+    </a>
+  </h3>
   <p>{entry.data.description}</p>
 
   {cmd && (
     <div class="card-cmd" data-card-cmd>
-      <code class="card-cmd-text">{cmd}</code>
+      <code class="card-cmd-text" title={cmd}>{cmd}</code>
       <button
         class="card-cmd-copy"
         type="button"
         aria-label="Скопіювати команду"
+        title="Скопіювати команду в буфер"
         data-cmd={cmd}
       >
         <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -50,7 +56,13 @@ const cmd = entry.data.quickCmd;
     <span aria-hidden="true">·</span>
     <span>{entry.data.platforms.map((platform) => platformLabels[platform]).join(' / ')}</span>
   </div>
-  <a class="card-link" href={`/cards/${entry.id}`} aria-label={`Відкрити шпаргалку «${entry.data.title}»`}>
-    Відкрити картку <span aria-hidden="true">→</span>
+  <a
+    class="card-link"
+    href={`/cards/${entry.id}`}
+    data-open-drawer={entry.id}
+    aria-label={`Відкрити деталі сценарію «${entry.data.title}»`}
+  >
+    <span>Сценарій та кроки</span>
+    <span class="card-link-arrow" aria-hidden="true">→</span>
   </a>
 </article>

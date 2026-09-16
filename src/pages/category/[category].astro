@@ -1,7 +1,8 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CheatCard from '@/components/CheatCard.astro';
+import CardDrawer from '@/components/CardDrawer.astro';
 import { categories } from '@/data/catalog';
 
 export async function getStaticPaths() {
@@ -12,6 +13,13 @@ const { category } = Astro.props;
 const entries = (await getCollection('cheatsheets'))
   .filter((entry) => entry.data.category === category.slug)
   .sort((a, b) => a.data.order - b.data.order);
+
+const renderedEntries = await Promise.all(
+  entries.map(async (entry) => {
+    const { Content, headings } = await render(entry);
+    return { entry, Content, headings };
+  })
+);
 ---
 
 <BaseLayout title={category.label} description={category.description}>
@@ -29,5 +37,20 @@ const entries = (await getCollection('cheatsheets'))
         ? <div class="cheat-grid">{entries.map((entry) => <CheatCard entry={entry} />)}</div>
         : <div class="empty-panel"><p>Картки цієї категорії готуються до першого релізу.</p><a href="/">Повернутися до каталогу</a></div>}
     </section>
+    <CardDrawer renderedEntries={renderedEntries} />
   </main>
 </BaseLayout>
+
+<script>
+  // Copy command buttons on cards
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-cmd]');
+    if (!btn) return;
+    e.stopPropagation();
+    const cmd = btn.dataset.cmd ?? '';
+    navigator.clipboard.writeText(cmd).then(() => {
+      btn.setAttribute('data-copied', '');
+      setTimeout(() => btn.removeAttribute('data-copied'), 1800);
+    });
+  });
+</script>

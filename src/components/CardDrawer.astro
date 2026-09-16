@@ -1,0 +1,246 @@
+---
+import { formatDate, getCategory, platformLabels, riskLabels } from '@/data/catalog';
+import type { CollectionEntry } from 'astro:content';
+
+export interface RenderedEntry {
+  entry: CollectionEntry<'cheatsheets'>;
+  Content: any;
+  headings: any[];
+}
+
+interface Props {
+  renderedEntries: RenderedEntry[];
+}
+
+const { renderedEntries } = Astro.props;
+---
+
+<div class="card-drawer-root" id="card-drawer-root" aria-hidden="true">
+  <div class="drawer-backdrop" data-drawer-close aria-hidden="true"></div>
+  <aside class="drawer-panel" role="dialog" aria-modal="true" aria-label="Панель деталей картки">
+    <header class="drawer-header-bar">
+      <div class="drawer-badges">
+        <span class="category-label drawer-category" id="drawer-category"></span>
+        <span class="risk-badge drawer-risk" id="drawer-risk"></span>
+      </div>
+      <div class="drawer-header-actions">
+        <a
+          class="drawer-fullscreen-link"
+          id="drawer-fullscreen"
+          href="#"
+          title="Відкрити сценарій на окремій сторінці"
+        >
+          <span>На окрему сторінку</span>
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M6 3h7v7M13 3 8 8"/>
+          </svg>
+        </a>
+        <button
+          class="drawer-close-btn"
+          type="button"
+          data-drawer-close
+          aria-label="Закрити панель (Esc)"
+          title="Закрити (Esc)"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="drawer-scroll-body" id="drawer-scroll-body">
+      {renderedEntries.map(({ entry, Content }) => {
+        const cat = getCategory(entry.data.category);
+        return (
+          <article
+            class="drawer-article"
+            id={`drawer-card-${entry.id}`}
+            data-drawer-item={entry.id}
+            data-category-label={cat?.label ?? ''}
+            data-category-mark={cat?.mark ?? ''}
+            data-risk-label={riskLabels[entry.data.risk]}
+            data-risk-class={`risk-${entry.data.risk}`}
+            data-url={`/cards/${entry.id}`}
+            hidden
+          >
+            <h1 class="drawer-title">{entry.data.title}</h1>
+            <p class="drawer-desc">{entry.data.description}</p>
+
+            <div class="fact-row drawer-facts">
+              <span><small>Платформа</small>{entry.data.platforms.map((p) => platformLabels[p]).join(' · ')}</span>
+              <span><small>Перевірено з</small>{entry.data.testedWith}</span>
+              <span><small>Оновлено</small><time datetime={entry.data.updated.toISOString()}>{formatDate(entry.data.updated)}</time></span>
+            </div>
+
+            <div class="prose drawer-prose">
+              <Content />
+            </div>
+
+            {entry.data.sources && entry.data.sources.length > 0 && (
+              <footer class="source-panel drawer-source-panel">
+                <div>
+                  <p class="eyebrow">Офіційні джерела</p>
+                  <h2>Звірити синтаксис</h2>
+                </div>
+                <ul>
+                  {entry.data.sources.map((source) => (
+                    <li><a href={source.url} rel="noreferrer" target="_blank">{source.label}<span aria-hidden="true"> ↗</span></a></li>
+                  ))}
+                </ul>
+              </footer>
+            )}
+          </article>
+        );
+      })}
+    </div>
+  </aside>
+</div>
+
+<script>
+  const root = document.getElementById('card-drawer-root');
+  const scrollBody = document.getElementById('drawer-scroll-body');
+  const catField = document.getElementById('drawer-category');
+  const riskField = document.getElementById('drawer-risk');
+  const fullscreenLink = document.getElementById('drawer-fullscreen') as HTMLAnchorElement | null;
+  const articles = Array.from(document.querySelectorAll<HTMLElement>('[data-drawer-item]'));
+
+  let activeCardId: string | null = null;
+
+  // Initialize copy buttons & blockquote classes inside drawer
+  const initDrawerProse = (container: HTMLElement) => {
+    container.querySelectorAll<HTMLElement>('pre').forEach((pre) => {
+      const code = pre.querySelector('code');
+      if (!code || pre.querySelector('.copy-button')) return;
+      const btn = document.createElement('button');
+      btn.className = 'copy-button';
+      btn.type = 'button';
+      btn.textContent = 'Копіювати';
+      btn.setAttribute('aria-label', 'Копіювати команду');
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(code.textContent ?? '');
+          btn.textContent = 'Скопійовано';
+          btn.dataset.copied = 'true';
+        } catch {
+          btn.textContent = 'Не вдалося';
+        }
+        window.setTimeout(() => {
+          btn.textContent = 'Копіювати';
+          delete btn.dataset.copied;
+        }, 1600);
+      });
+      pre.append(btn);
+    });
+
+    container.querySelectorAll<HTMLElement>('blockquote').forEach((note) => {
+      const text = note.textContent?.toLocaleLowerCase('uk') ?? '';
+      if (text.includes('незворотно')) note.classList.add('risk-note-destructive');
+      else if (text.includes('безпечно')) note.classList.add('risk-note-safe');
+      else note.classList.add('risk-note-changes');
+    });
+  };
+
+  const openDrawer = (cardId: string, updateUrl = true) => {
+    if (activeCardId === cardId && root?.classList.contains('is-open')) return;
+    const target = articles.find((a) => a.dataset.drawerItem === cardId);
+    if (!target || !root) return;
+
+    // Hide all, show target
+    articles.forEach((a) => (a.hidden = true));
+    target.hidden = false;
+    initDrawerProse(target);
+
+    // Update header meta
+    if (catField) {
+      catField.innerHTML = `<span aria-hidden="true">${target.dataset.categoryMark ?? ''}</span> ${target.dataset.categoryLabel ?? ''}`;
+    }
+    if (riskField) {
+      riskField.textContent = target.dataset.riskLabel ?? '';
+      riskField.className = `risk-badge ${target.dataset.riskClass ?? ''}`;
+    }
+    if (fullscreenLink) {
+      fullscreenLink.href = target.dataset.url ?? '#';
+    }
+
+    // Scroll drawer body to top
+    if (scrollBody) scrollBody.scrollTop = 0;
+
+    // Open root
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('has-drawer-open');
+    activeCardId = cardId;
+
+    // Highlight active card in catalog
+    document.querySelectorAll<HTMLElement>('[data-catalog-card]').forEach((card) => {
+      card.classList.toggle('is-active', card.dataset.cardId === cardId);
+    });
+
+    // Update URL hash
+    if (updateUrl) {
+      history.replaceState(null, '', `#card-${cardId}`);
+    }
+  };
+
+  const closeDrawer = () => {
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('has-drawer-open');
+    activeCardId = null;
+
+    // Remove active highlight in catalog
+    document.querySelectorAll<HTMLElement>('[data-catalog-card]').forEach((card) => {
+      card.classList.remove('is-active');
+    });
+
+    // Clear hash if it was a card
+    if (window.location.hash.startsWith('#card-')) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  };
+
+  // Click listeners for drawer openers
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+
+    // Check if clicked close button or backdrop
+    if (target.closest('[data-drawer-close]')) {
+      closeDrawer();
+      return;
+    }
+
+    // Check if clicked an open-drawer trigger (card or card link)
+    const trigger = target.closest<HTMLElement>('[data-open-drawer]');
+    if (trigger) {
+      // Don't intercept if modified click (Ctrl/Cmd/Shift) or right-click
+      const mouseEvent = e as MouseEvent;
+      if (mouseEvent.ctrlKey || mouseEvent.metaKey || mouseEvent.shiftKey || mouseEvent.button !== 0) {
+        return;
+      }
+      e.preventDefault();
+      const cardId = trigger.getAttribute('data-open-drawer');
+      if (cardId) openDrawer(cardId);
+    }
+  });
+
+  // ESC key to close
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && root?.classList.contains('is-open')) {
+      closeDrawer();
+    }
+  });
+
+  // Check URL hash on page load
+  const checkHash = () => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#card-')) {
+      const cardId = hash.replace('#card-', '');
+      openDrawer(cardId, false);
+    }
+  };
+
+  checkHash();
+  window.addEventListener('hashchange', checkHash);
+</script>
