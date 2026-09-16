@@ -19,6 +19,7 @@ const cmd = entry.data.quickCmd;
   data-category={entry.data.category}
   data-platforms={entry.data.platforms.join(',')}
   data-featured={featured ? 'true' : 'false'}
+  data-open-drawer={entry.id}
 >
   <div class="card-topline">
     <a class="category-label" href={`/category/${entry.data.category}`}>

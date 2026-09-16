@@ -38,9 +38,9 @@ const renderedEntries = await Promise.all(
       </div>
     </section>
 
-    <section class="workspace-section" id="workspace" aria-labelledby="workspace-title">
-      <div class="workspace-shell">
-        <h2 id="workspace-title" class="sr-only">Каталог та інспектор сценаріїв</h2>
+    <section class="catalog-section" id="catalog" aria-labelledby="catalog-title">
+      <div class="shell">
+        <h2 id="catalog-title" class="sr-only">Каталог карток OpsCards</h2>
 
         <div class="filters" aria-label="Фільтри каталогу">
           <div class="filter-group" role="group" aria-label="Категорія">
@@ -63,27 +63,20 @@ const renderedEntries = await Promise.all(
           </label>
         </div>
 
-        <div class="split-workspace">
-          <div class="split-master">
-            <div class="catalog-subhead" data-pagefind-ignore>
-              <span class="catalog-count"><strong id="visible-count">{entries.length}</strong> сценаріїв</span>
-              <span class="catalog-hint">Клікніть картку для відкриття кроків</span>
-            </div>
-            <div class="master-grid" data-catalog-grid>
-              {entries.map((entry) => (
-                <CheatCard
-                  entry={entry}
-                  featured={workIds.includes(entry.id)}
-                />
-              ))}
-            </div>
-            <p class="catalog-empty" data-catalog-empty hidden>Для цієї комбінації ще немає карток.</p>
-          </div>
-
-          <div class="split-detail-col">
-            <CardDrawer renderedEntries={renderedEntries} defaultCardId={workIds[0]} />
-          </div>
+        <div class="catalog-subhead" data-pagefind-ignore>
+          <span class="catalog-count"><strong id="visible-count">{entries.length}</strong> сценаріїв</span>
+          <span class="catalog-hint">Клікніть будь-яку картку, щоб відкрити повні кроки</span>
         </div>
+
+        <div class="cheat-grid" data-catalog-grid>
+          {entries.map((entry) => (
+            <CheatCard
+              entry={entry}
+              featured={workIds.includes(entry.id)}
+            />
+          ))}
+        </div>
+        <p class="catalog-empty" data-catalog-empty hidden>Для цієї комбінації ще немає карток.</p>
       </div>
     </section>
 
@@ -93,6 +86,8 @@ const renderedEntries = await Promise.all(
         <a href="/about">Як ми перевіряємо картки <span aria-hidden="true">→</span></a>
       </div>
     </section>
+
+    <CardDrawer renderedEntries={renderedEntries} />
   </main>
 </BaseLayout>
 
@@ -107,7 +102,6 @@ const renderedEntries = await Promise.all(
   const applyFilters = () => {
     const platform = platformSelect?.value ?? 'all';
     let visible = 0;
-    let firstVisibleCardId: string | null = null;
 
     for (const card of cards) {
       let categoryMatch = false;
@@ -121,25 +115,11 @@ const renderedEntries = await Promise.all(
 
       const platformMatch = platform === 'all' || (card.dataset.platforms ?? '').split(',').includes(platform);
       card.hidden = !(categoryMatch && platformMatch);
-      if (!card.hidden) {
-        visible += 1;
-        if (!firstVisibleCardId && card.dataset.cardId) {
-          firstVisibleCardId = card.dataset.cardId;
-        }
-      }
+      if (!card.hidden) visible += 1;
     }
 
     if (empty) empty.hidden = visible !== 0;
     if (countEl) countEl.textContent = String(visible);
-
-    // If on desktop (>=1080px) and active card is hidden, switch to first visible
-    if (window.innerWidth >= 1080 && firstVisibleCardId) {
-      const activeCard = cards.find((c) => c.classList.contains('is-active'));
-      if (activeCard && activeCard.hidden) {
-        const trigger = document.querySelector<HTMLElement>(`[data-open-drawer="${firstVisibleCardId}"]`);
-        trigger?.click();
-      }
-    }
   };
 
   categoryButtons.forEach((button) => button.addEventListener('click', () => {

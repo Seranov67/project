@@ -217,6 +217,11 @@ const { renderedEntries, defaultCardId = '' } = Astro.props;
       return;
     }
 
+    // Ignore clicks on copy button
+    if (target.closest('[data-cmd]')) {
+      return;
+    }
+
     // Check if clicked an open-drawer trigger (card or card link)
     const trigger = target.closest<HTMLElement>('[data-open-drawer]');
     if (trigger) {
@@ -238,26 +243,15 @@ const { renderedEntries, defaultCardId = '' } = Astro.props;
     }
   });
 
-  const isDesktop = () => window.innerWidth >= 1024;
-
-  // Check URL hash on page load or auto-select default card on desktop
+  // Check URL hash on page load
   const checkInitialCard = () => {
     const hash = window.location.hash;
-    const defaultId = root?.dataset.defaultCard || articles[0]?.dataset.drawerItem;
     if (hash.startsWith('#card-')) {
       const cardId = hash.replace('#card-', '');
       openDrawer(cardId, false);
-    } else if (isDesktop() && defaultId) {
-      openDrawer(defaultId, false);
     }
   };
 
   checkInitialCard();
   window.addEventListener('hashchange', checkInitialCard);
-  window.addEventListener('resize', () => {
-    if (isDesktop() && !activeCardId) {
-      const defaultId = root?.dataset.defaultCard || articles[0]?.dataset.drawerItem;
-      if (defaultId) openDrawer(defaultId, false);
-    }
-  });
 </script>
