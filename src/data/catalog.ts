@@ -5,6 +5,7 @@ export const categories = [
   { slug: 'network', label: 'Network', mark: '↗', description: 'SSH, HTTP та мережеві перевірки' },
   { slug: 'git', label: 'Git', mark: '⑂', description: 'Щоденна робота й безпечне відновлення' },
   { slug: 'operations', label: 'Operations', mark: '⌁', description: 'Спостережуваність і периферія' },
+  { slug: 'windows', label: 'Windows', mark: '⊞', description: 'GPO, RDP, інсталяція та відновлення' },
 ] as const;
 
 export type CategorySlug = (typeof categories)[number]['slug'];
