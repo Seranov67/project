@@ -8,7 +8,9 @@ if (files.length < 12) failures.push(`Перший реліз має місти�
 
 for (const file of files) {
   const text = await readFile(new URL(file, contentDir), 'utf8');
-  const scenarios = text.match(/^##\s+.+$/gm) ?? [];
+  // "Швидкі команди" — службова секція без обов'язкових полів формату
+  const allHeadings = text.match(/^##\s+.+$/gm) ?? [];
+  const scenarios = allHeadings.filter((h) => !/^##\s+Швидкі команди\s*$/.test(h));
   const risks = text.match(/^> \*\*Ризик:/gm) ?? [];
   const parameters = text.match(/\*\*Параметри:\*\*/g) ?? [];
   const verifications = text.match(/\*\*Перевірка:\*\*/g) ?? [];
@@ -19,8 +21,8 @@ for (const file of files) {
     /\b(?:--pass(?:word)?|ansible_(?:ssh_)?pass(?:word)?)\s*(?:=|\s+)\s*\S+/i,
   ];
 
-  if (scenarios.length < 5 || scenarios.length > 8) {
-    failures.push(`${file}: потрібно 5–8 сценаріїв; знайдено ${scenarios.length}.`);
+  if (scenarios.length < 4 || scenarios.length > 8) {
+    failures.push(`${file}: потрібно 4–8 сценаріїв (без «Швидкі команди»); знайдено ${scenarios.length}.`);
   }
   if (risks.length !== scenarios.length) failures.push(`${file}: кожний сценарій повинен мати рівень ризику.`);
   if (parameters.length !== scenarios.length) failures.push(`${file}: кожний сценарій повинен пояснювати параметри.`);

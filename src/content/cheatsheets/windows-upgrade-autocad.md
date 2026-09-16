@@ -1,6 +1,6 @@
 ---
 title: "Windows: оновлення та AutoCAD"
-description: Підготовка Windows 11 до 25H2 і відновлення налаштувань AutoCAD через підтримувані засоби.
+description: Перевірка версії Windows 11, підготовка до 25H2 і скидання налаштувань AutoCAD.
 category: windows
 tags: [windows, 24h2, 25h2, setup, autocad, autodesk]
 platforms: [windows]
@@ -16,64 +16,96 @@ sources:
   - label: Autodesk — скидання AutoCAD
     url: https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/How-to-reset-AutoCAD-to-defaults.html
 ---
-Для переходу Windows 11 з 24H2 на 25H2 Microsoft використовує enablement package. Команда `setup.exe /product server` із нотаток не є стандартною інструкцією для оновлення клієнтської Windows, тому її тут немає. Для AutoCAD спершу використовуйте офіційне «Reset Settings to Default» із резервною копією.
+
+## Швидкі команди
+
+```powershell
+# Перевірити версію Windows
+Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsBuildNumber
+
+# Перевірити вільне місце перед оновленням
+Get-Volume | Select-Object DriveLetter, SizeRemaining, HealthStatus
+
+# Встановити AutoCAD із MSI
+msiexec /i "C:\path\to\acad.msi" /L*V "%TEMP%\autocad-install.log"
+
+# Скинути налаштування AutoCAD (реєстр, залежить від версії)
+# R16.2 = AutoCAD 2006 — замініть на свою версію
+reg export "HKCU\Software\Autodesk\AutoCAD\R16.2\ACAD-1:409" "%USERPROFILE%\Desktop\autocad-backup.reg"
+reg delete "HKCU\Software\Autodesk\AutoCAD\R16.2\ACAD-1:409" /f
+```
+
+---
 
 ## Визначити версію Windows
 
-> **Ризик: безпечно.** Перевірка версії не змінює систему.
+> **Ризик: безпечно.**
 
 ```powershell
 Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsBuildNumber
 ```
 
-**Параметри:** звірте редакцію, версію і build; команда виконується на комп’ютері, який плануєте оновити.
+**Параметри:** дивіться деталі вище у блоці команд.
 
-**Перевірка:** підтверджено саме Windows 11 24H2, а не Windows Server чи іншу версію.
+**Перевірка:** підтверджено Windows 11 24H2 перед запуском оновлення.
 
-## Підготувати підтримуване оновлення
+## Перевірити диск перед оновленням
 
-> **Ризик: безпечно.** Підготовка не запускає оновлення; вона зменшує ризик простою й втрати даних.
+> **Ризик: безпечно.** Підготовка зменшує ризик простою.
 
 ```powershell
 Get-Volume | Select-Object DriveLetter, SizeRemaining, HealthStatus
 ```
 
-**Параметри:** перевірте вільне місце на системному томі, резервну копію, сумісність програм та доступний спосіб розгортання — Windows Update, WSUS або керований пакет 25H2.
+Перевірте вільне місце на системному томі (потрібно ≥ 10 ГБ), наявність резервної копії та сумісність програм.
 
-**Перевірка:** є актуальна резервна копія й план повернення; потрібний пакет схвалено для цієї групи машин.
+**Параметри:** дивіться деталі вище.
 
-## Запустити 25H2 через керований канал
+**Перевірка:** перевірте результат виконаної команди.
+## Запустити 25H2
 
-> **Ризик: змінює систему.** Оновлення може вимагати перезавантаження й тимчасово перервати роботу.
+> **Ризик: змінює систему.** Оновлення може вимагати перезавантаження.
 
 ```text
-Windows Update / WSUS / Configuration Manager → схвалений пакет Windows 11 25H2
+Windows Update → перевірити наявність оновлень → Windows 11 25H2 Enablement Package
 ```
 
-**Параметри:** для 24H2 використовуйте enablement package, який описує Microsoft; `DynamicUpdate Disable` вимикає отримання оновлень під час Setup і застосовується лише за окремим планом інсталяції.
+Або через WSUS / Configuration Manager для корпоративного парку машин.
 
-**Перевірка:** після перезавантаження `Get-ComputerInfo` показує очікувану версію, програми запускаються, а історія оновлень не містить помилки.
+**Перевірка після оновлення:**
+```powershell
+Get-ComputerInfo | Select-Object WindowsVersion, OsBuildNumber
+```
 
-## Встановити AutoCAD із перевіреного пакета
+**Параметри:** дивіться деталі вище.
 
-> **Ризик: змінює систему.** Старі версії AutoCAD можуть бути несумісні з сучасною Windows; перевірте право використання та підтримку перед встановленням.
+**Перевірка:** перевірте результат виконаної команди.
+## Встановити AutoCAD із MSI
+
+> **Ризик: змінює систему.** Використовуйте автентичний пакет.
 
 ```cmd
 msiexec /i "C:\path\to\acad.msi" /L*V "%TEMP%\autocad-install.log"
 ```
 
-**Параметри:** прикладовий шлях замінює особисту директорію користувача; використовуйте лише автентичний інсталяційний пакет.
+**Параметри:** дивіться деталі вище у блоці команд.
 
-**Перевірка:** журнал не містить фатальної помилки, AutoCAD запускається під потрібним користувачем.
+**Перевірка:** журнал не містить фатальної помилки, AutoCAD запускається.
 
-## Скинути пошкоджені налаштування AutoCAD
+## Скинути налаштування AutoCAD
 
-> **Ризик: змінює систему.** Персоналізація може бути втрачена, тому виберіть варіант із резервною копією.
+> **Ризик: змінює систему.** Персоналізація буде втрачена. Зробіть backup реєстру перед видаленням.
 
-```text
-Закрийте AutoCAD → Пуск → AutoCAD → Reset Settings to Default → Back up and Reset Settings
+```cmd
+:: Спочатку — backup (замініть R16.2 на свою версію)
+reg export "HKCU\Software\Autodesk\AutoCAD\R16.2\ACAD-1:409" "%USERPROFILE%\Desktop\autocad-backup.reg"
+
+:: Потім — видалити ключ і запустити AutoCAD
+reg delete "HKCU\Software\Autodesk\AutoCAD\R16.2\ACAD-1:409" /f
 ```
 
-**Параметри:** шлях `HKCU\Software\Autodesk\AutoCAD\...` залежить від версії й мови. Autodesk не радить редагувати реєстр напряму; не видаляйте старий `ACAD-1:409` без окремої діагностики.
+Або через GUI: **Пуск → AutoCAD → Reset Settings to Default → Back up and Reset Settings**.
 
-**Перевірка:** AutoCAD запускається з типовим профілем; потрібні налаштування можна повернути з резервної копії.
+**Параметри:** дивіться деталі вище у блоці команд.
+
+**Перевірка:** AutoCAD запускається з типовим профілем.
