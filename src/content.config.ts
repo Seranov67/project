@@ -7,7 +7,7 @@ const cheatsheets = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    category: z.enum(['linux', 'services', 'containers', 'network', 'git', 'operations']),
+    category: z.enum(['linux', 'services', 'containers', 'network', 'git', 'operations', 'windows']),
     tags: z.array(z.string()).min(1),
     platforms: z.array(z.enum(['linux', 'windows', 'macos'])).min(1),
     testedWith: z.string(),
