@@ -9,6 +9,7 @@ risk: safe
 updated: 2026-09-15
 order: 6
 featured: true
+quickCmd: "docker logs --tail 100 -f <container>"
 sources:
   - label: Docker CLI — docker container logs
     url: https://docs.docker.com/reference/cli/docker/container/logs/

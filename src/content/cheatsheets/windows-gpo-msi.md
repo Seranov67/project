@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-16
 order: 13
 featured: true
+quickCmd: "gpupdate /force && gpresult /h %TEMP%\\gpresult.html"
 sources:
   - label: Microsoft — gpupdate
     url: https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/gpupdate

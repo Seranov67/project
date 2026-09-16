@@ -8,6 +8,7 @@ testedWith: systemd-resolved · WireGuard tools
 risk: changes-system
 updated: 2026-09-16
 order: 17
+quickCmd: "sudo systemctl start wg-quick@wg0 && sudo systemctl enable wg-quick@wg0"
 sources:
   - label: systemd — resolvectl
     url: https://www.freedesktop.org/software/systemd/man/latest/resolvectl.html

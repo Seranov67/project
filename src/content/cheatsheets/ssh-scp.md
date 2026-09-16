@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-15
 order: 7
 featured: true
+quickCmd: "ssh -p 22 user@host && scp file.txt user@host:/path/"
 sources:
   - label: OpenBSD manual — ssh
     url: https://man.openbsd.org/ssh

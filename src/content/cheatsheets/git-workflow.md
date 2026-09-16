@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-15
 order: 9
 featured: true
+quickCmd: 'git status && git add -p && git commit -m "feat: ..."'
 sources:
   - label: Git reference
     url: https://git-scm.com/docs

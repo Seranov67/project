@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-15
 order: 2
 featured: false
+quickCmd: "top -bn1 | head -20 && df -h"
 sources:
   - label: procps-ng manuals
     url: https://gitlab.com/procps-ng/procps/-/tree/master/man

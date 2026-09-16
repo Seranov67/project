@@ -38,15 +38,10 @@ const workEntries = workIds.map((id) => entries.find((entry) => entry.id === id)
           <p class="eyebrow">Швидкий доступ</p>
           <h2 id="work-shortcuts-title">Для щоденної роботи</h2>
         </div>
-        <p>Найчастіші сценарії з робочих нотаток.</p>
+        <p>Найчастіші сценарії з робочих нотаток. Команда — прямо тут.</p>
       </div>
-      <div class="work-shortcuts-grid">
-        {workEntries.map((entry) => (
-          <a href={`/cards/${entry.id}`}>
-            <strong>{entry.data.title}</strong>
-            <span aria-hidden="true">→</span>
-          </a>
-        ))}
+      <div class="cheat-grid work-shortcuts-grid">
+        {workEntries.map((entry) => <CheatCard entry={entry} featured={true} />)}
       </div>
     </section>
 
@@ -125,4 +120,15 @@ const workEntries = workIds.map((id) => entries.find((entry) => entry.id === id)
     applyFilters();
   }));
   platformSelect?.addEventListener('change', applyFilters);
+
+  // Copy command buttons on cards
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-cmd]');
+    if (!btn) return;
+    const cmd = btn.dataset.cmd ?? '';
+    navigator.clipboard.writeText(cmd).then(() => {
+      btn.setAttribute('data-copied', '');
+      setTimeout(() => btn.removeAttribute('data-copied'), 1800);
+    });
+  });
 </script>

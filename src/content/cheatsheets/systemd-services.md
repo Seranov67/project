@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-15
 order: 3
 featured: true
+quickCmd: "sudo systemctl restart <service> && systemctl status <service>"
 sources:
   - label: systemctl manual
     url: https://www.freedesktop.org/software/systemd/man/latest/systemctl.html

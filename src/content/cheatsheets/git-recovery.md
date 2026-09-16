@@ -9,6 +9,7 @@ risk: destructive
 updated: 2026-09-15
 order: 10
 featured: false
+quickCmd: "git log --oneline -10 && git stash list"
 sources:
   - label: git-restore manual
     url: https://git-scm.com/docs/git-restore

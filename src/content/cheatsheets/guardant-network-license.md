@@ -8,6 +8,7 @@ testedWith: Guardant Net · gnclient.ini
 risk: changes-system
 updated: 2026-09-16
 order: 19
+quickCmd: "Test-NetConnection <license-server> -Port 3186"
 sources:
   - label: Guardant — база знань про мережевий ключ
     url: https://dev.guardant.ru/display/KB/0010

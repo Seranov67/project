@@ -8,6 +8,7 @@ testedWith: rsync 3.x · OpenSSH
 risk: changes-system
 updated: 2026-09-16
 order: 18
+quickCmd: "rsync -avz --progress <user>@<server>:/path/to/source/ /path/to/dest/"
 sources:
   - label: rsync — офіційний посібник
     url: https://rsync.samba.org/ftp/rsync/rsync.1

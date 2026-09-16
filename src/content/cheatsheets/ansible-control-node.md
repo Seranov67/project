@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-16
 order: 20
 featured: true
+quickCmd: "ansible-playbook -i inventory.ini playbooks/install.yaml --limit client-01"
 sources:
   - label: Ansible — встановлення на control node
     url: https://docs.ansible.com/projects/ansible-core/devel/installation_guide/intro_installation.html

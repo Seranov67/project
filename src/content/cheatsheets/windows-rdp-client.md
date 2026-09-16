@@ -8,6 +8,7 @@ testedWith: Windows 11 · Remote Desktop Connection
 risk: changes-system
 updated: 2026-09-16
 order: 14
+quickCmd: 'reg delete "HKLM\Software\Microsoft\MSLicensing" /f'
 sources:
   - label: Microsoft — попередження безпеки RDP
     url: https://learn.microsoft.com/en-us/windows-server/remote/remote-desktop-services/remotepc/understanding-security-warnings

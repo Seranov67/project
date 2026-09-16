@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-15
 order: 8
 featured: false
+quickCmd: "curl -sI https://example.com | head -5"
 sources:
   - label: curl command line manual
     url: https://curl.se/docs/manpage.html

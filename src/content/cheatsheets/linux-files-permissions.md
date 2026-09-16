@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-15
 order: 1
 featured: true
+quickCmd: "ls -la /path && chmod 755 /path && chown user:group /path"
 sources:
   - label: GNU Coreutils — File permissions
     url: https://www.gnu.org/software/coreutils/manual/html_node/File-permissions.html

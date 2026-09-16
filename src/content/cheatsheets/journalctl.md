@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-15
 order: 4
 featured: false
+quickCmd: "journalctl -u <service> -n 100 --no-pager"
 sources:
   - label: journalctl manual
     url: https://www.freedesktop.org/software/systemd/man/latest/journalctl.html

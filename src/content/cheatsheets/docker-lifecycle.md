@@ -9,6 +9,7 @@ risk: destructive
 updated: 2026-09-15
 order: 5
 featured: false
+quickCmd: "docker ps -a && docker start <container>"
 sources:
   - label: Docker CLI — container commands
     url: https://docs.docker.com/reference/cli/docker/container/

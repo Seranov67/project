@@ -9,6 +9,7 @@ risk: safe
 updated: 2026-09-15
 order: 11
 featured: true
+quickCmd: "logcli query '{job=\"systemd\"}' --limit 50"
 sources:
   - label: Grafana Loki — LogQL
     url: https://grafana.com/docs/loki/latest/query/

@@ -8,6 +8,7 @@ testedWith: Windows 11 · PowerShell 5.1+
 risk: changes-system
 updated: 2026-09-16
 order: 15
+quickCmd: "Get-Partition | Format-Table DiskNumber,PartitionNumber,DriveLetter,Type,Size"
 sources:
   - label: Microsoft — події служби профілів
     url: https://learn.microsoft.com/en-us/troubleshoot/windows-server/user-profiles-and-logon/troubleshoot-user-profiles-events

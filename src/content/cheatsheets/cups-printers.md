@@ -9,6 +9,7 @@ risk: changes-system
 updated: 2026-09-15
 order: 12
 featured: false
+quickCmd: "lpstat -p -d && lpq"
 sources:
   - label: OpenPrinting CUPS — Command-Line Printing
     url: https://openprinting.github.io/cups/doc/options.html

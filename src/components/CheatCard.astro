@@ -4,14 +4,16 @@ import { getCategory, platformLabels, riskLabels } from '@/data/catalog';
 
 interface Props {
   entry: CollectionEntry<'cheatsheets'>;
+  featured?: boolean;
 }
 
-const { entry } = Astro.props;
+const { entry, featured = false } = Astro.props;
 const category = getCategory(entry.data.category);
+const cmd = entry.data.quickCmd;
 ---
 
 <article
-  class="cheat-card"
+  class={`cheat-card${featured ? ' cheat-card--featured' : ''}`}
   data-catalog-card
   data-category={entry.data.category}
   data-platforms={entry.data.platforms.join(',')}
@@ -24,6 +26,25 @@ const category = getCategory(entry.data.category);
   </div>
   <h3><a href={`/cards/${entry.id}`}>{entry.data.title}</a></h3>
   <p>{entry.data.description}</p>
+
+  {cmd && (
+    <div class="card-cmd" data-card-cmd>
+      <code class="card-cmd-text">{cmd}</code>
+      <button
+        class="card-cmd-copy"
+        type="button"
+        aria-label="Скопіювати команду"
+        data-cmd={cmd}
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <rect x="4" y="4" width="9" height="11" rx="1.5" />
+          <path d="M3 3V2a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v1" />
+        </svg>
+        <span class="card-cmd-copied">✓</span>
+      </button>
+    </div>
+  )}
+
   <div class="card-meta">
     <span>{entry.data.testedWith}</span>
     <span aria-hidden="true">·</span>

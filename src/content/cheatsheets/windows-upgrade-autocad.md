@@ -8,6 +8,7 @@ testedWith: Windows 11 24H2 · AutoCAD
 risk: changes-system
 updated: 2026-09-16
 order: 16
+quickCmd: "Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsBuildNumber"
 sources:
   - label: Microsoft — Windows 11 25H2 для ІТ
     url: https://learn.microsoft.com/en-us/windows/whats-new/whats-new-windows-11-version-25h2

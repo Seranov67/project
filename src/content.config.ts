@@ -15,6 +15,7 @@ const cheatsheets = defineCollection({
     updated: z.coerce.date(),
     order: z.number().int().positive(),
     featured: z.boolean().default(false),
+    quickCmd: z.string().optional(),
     sources: z.array(z.object({
       label: z.string(),
       url: z.url(),
