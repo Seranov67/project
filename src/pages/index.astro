@@ -5,6 +5,8 @@ import CheatCard from '@/components/CheatCard.astro';
 import { categories } from '@/data/catalog';
 
 const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order - b.data.order);
+const workIds = ['ansible-control-node', 'windows-gpo-msi', 'windows-rdp-client', 'linux-dns-wireguard', 'rsync-remote-copy', 'guardant-network-license'];
+const workEntries = workIds.map((id) => entries.find((entry) => entry.id === id)).filter((entry) => entry !== undefined);
 ---
 
 <BaseLayout>
@@ -13,7 +15,7 @@ const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order
       <div class="hero-copy">
         <p class="eyebrow">DevOps-first довідник</p>
         <h1 id="hero-title">Команда. Контекст.<br /><em>Перевірка.</em></h1>
-        <p class="hero-lede">Короткі сценарії для Linux та інфраструктури: що виконати, який ризик і як переконатися, що все спрацювало.</p>
+        <p class="hero-lede">Короткі сценарії для Windows, Linux та інфраструктури: що виконати, який ризик і як переконатися, що все спрацювало.</p>
       </div>
       <button class="hero-search" type="button" data-open-search aria-haspopup="dialog">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
@@ -27,6 +29,24 @@ const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order
         <span><strong>{entries.length}</strong> перевірених карток</span>
         <span><strong>≤ 8</strong> сценаріїв на сторінку</span>
         <span><strong>0</strong> акаунтів і трекерів</span>
+      </div>
+    </section>
+
+    <section class="work-shortcuts shell" aria-labelledby="work-shortcuts-title" data-pagefind-ignore>
+      <div class="work-shortcuts-heading">
+        <div>
+          <p class="eyebrow">Швидкий доступ</p>
+          <h2 id="work-shortcuts-title">Для щоденної роботи</h2>
+        </div>
+        <p>Найчастіші сценарії з робочих нотаток.</p>
+      </div>
+      <div class="work-shortcuts-grid">
+        {workEntries.map((entry) => (
+          <a href={`/cards/${entry.id}`}>
+            <strong>{entry.data.title}</strong>
+            <span aria-hidden="true">→</span>
+          </a>
+        ))}
       </div>
     </section>
 
