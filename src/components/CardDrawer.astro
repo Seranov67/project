@@ -10,12 +10,18 @@ export interface RenderedEntry {
 
 interface Props {
   renderedEntries: RenderedEntry[];
+  defaultCardId?: string;
 }
 
-const { renderedEntries } = Astro.props;
+const { renderedEntries, defaultCardId = '' } = Astro.props;
 ---
 
-<div class="card-drawer-root" id="card-drawer-root" aria-hidden="true">
+<div
+  class="card-drawer-root"
+  id="card-drawer-root"
+  data-default-card={defaultCardId}
+  aria-hidden="true"
+>
   <div class="drawer-backdrop" data-drawer-close aria-hidden="true"></div>
   <aside class="drawer-panel" role="dialog" aria-modal="true" aria-label="Панель деталей картки">
     <header class="drawer-header-bar">
@@ -232,15 +238,26 @@ const { renderedEntries } = Astro.props;
     }
   });
 
-  // Check URL hash on page load
-  const checkHash = () => {
+  const isDesktop = () => window.innerWidth >= 1024;
+
+  // Check URL hash on page load or auto-select default card on desktop
+  const checkInitialCard = () => {
     const hash = window.location.hash;
+    const defaultId = root?.dataset.defaultCard || articles[0]?.dataset.drawerItem;
     if (hash.startsWith('#card-')) {
       const cardId = hash.replace('#card-', '');
       openDrawer(cardId, false);
+    } else if (isDesktop() && defaultId) {
+      openDrawer(defaultId, false);
     }
   };
 
-  checkHash();
-  window.addEventListener('hashchange', checkHash);
+  checkInitialCard();
+  window.addEventListener('hashchange', checkInitialCard);
+  window.addEventListener('resize', () => {
+    if (isDesktop() && !activeCardId) {
+      const defaultId = root?.dataset.defaultCard || articles[0]?.dataset.drawerItem;
+      if (defaultId) openDrawer(defaultId, false);
+    }
+  });
 </script>

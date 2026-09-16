@@ -7,7 +7,6 @@ import { categories } from '@/data/catalog';
 
 const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order - b.data.order);
 const workIds = ['ansible-control-node', 'windows-gpo-msi', 'windows-rdp-client', 'linux-dns-wireguard', 'rsync-remote-copy', 'guardant-network-license'];
-const workEntries = workIds.map((id) => entries.find((entry) => entry.id === id)).filter((entry) => entry !== undefined);
 
 const renderedEntries = await Promise.all(
   entries.map(async (entry) => {
@@ -19,53 +18,34 @@ const renderedEntries = await Promise.all(
 
 <BaseLayout>
   <main id="main-content">
-    <section class="hero shell" aria-labelledby="hero-title" data-pagefind-ignore>
-      <div class="hero-copy">
-        <p class="eyebrow">DevOps-first довідник</p>
-        <h1 id="hero-title">Команда. Контекст.<br /><em>Перевірка.</em></h1>
-        <p class="hero-lede">Короткі сценарії для Windows, Linux та інфраструктури: що виконати, який ризик і як переконатися, що все спрацювало.</p>
-      </div>
-      <button class="hero-search" type="button" data-open-search aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
-        <span>
-          <strong>Знайти команду</strong>
-          <small>docker logs, systemctl, HTTP 500…</small>
-        </span>
-        <kbd>/</kbd>
-      </button>
-      <div class="hero-proof" aria-label="Властивості довідника">
-        <span><strong>{entries.length}</strong> перевірених карток</span>
-        <span><strong>≤ 8</strong> сценаріїв на сторінку</span>
-        <span><strong>0</strong> акаунтів і трекерів</span>
-      </div>
-    </section>
-
-    <section class="work-shortcuts shell" aria-labelledby="work-shortcuts-title" data-pagefind-ignore>
-      <div class="work-shortcuts-heading">
+    <section class="app-hero shell" aria-labelledby="hero-title" data-pagefind-ignore>
+      <div class="app-hero-row">
         <div>
-          <p class="eyebrow">Швидкий доступ</p>
-          <h2 id="work-shortcuts-title">Для щоденної роботи</h2>
+          <p class="eyebrow">DevOps & SysAdmin Workspace</p>
+          <h1 id="hero-title" class="app-hero-title">Команда. Контекст. <em>Перевірка.</em></h1>
+          <p class="app-hero-lede">Короткі перевірені сценарії для Linux, Windows та мережі: що виконати, який ризик і як переконатися в результаті.</p>
         </div>
-        <p>Найчастіші сценарії з робочих нотаток. Команда — прямо тут.</p>
-      </div>
-      <div class="cheat-grid work-shortcuts-grid">
-        {workEntries.map((entry) => <CheatCard entry={entry} featured={true} />)}
+        <div class="app-hero-actions">
+          <button class="hero-search app-hero-search" type="button" data-open-search aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+            <span>
+              <strong>Знайти команду</strong>
+              <small>docker, wireguard, rdp, rsync…</small>
+            </span>
+            <kbd>/</kbd>
+          </button>
+        </div>
       </div>
     </section>
 
-    <section class="catalog-section" id="catalog" aria-labelledby="catalog-title">
-      <div class="shell">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Каталог</p>
-            <h2 id="catalog-title">Польові картки</h2>
-          </div>
-          <p>Відфільтруйте інструмент, відкрийте сценарій і скопіюйте команду.</p>
-        </div>
+    <section class="workspace-section" id="workspace" aria-labelledby="workspace-title">
+      <div class="workspace-shell">
+        <h2 id="workspace-title" class="sr-only">Каталог та інспектор сценаріїв</h2>
 
         <div class="filters" aria-label="Фільтри каталогу">
           <div class="filter-group" role="group" aria-label="Категорія">
             <button class="filter-chip is-active" type="button" data-category-filter="all" aria-pressed="true">Усі</button>
+            <button class="filter-chip" type="button" data-category-filter="featured" aria-pressed="false">⭐ Швидкі</button>
             {categories.map((category) => (
               <button class="filter-chip" type="button" data-category-filter={category.slug} aria-pressed="false">
                 <span aria-hidden="true">{category.mark}</span> {category.label}
@@ -83,10 +63,27 @@ const renderedEntries = await Promise.all(
           </label>
         </div>
 
-        <div class="cheat-grid" data-catalog-grid>
-          {entries.map((entry) => <CheatCard entry={entry} />)}
+        <div class="split-workspace">
+          <div class="split-master">
+            <div class="catalog-subhead" data-pagefind-ignore>
+              <span class="catalog-count"><strong id="visible-count">{entries.length}</strong> сценаріїв</span>
+              <span class="catalog-hint">Клікніть картку для відкриття кроків</span>
+            </div>
+            <div class="master-grid" data-catalog-grid>
+              {entries.map((entry) => (
+                <CheatCard
+                  entry={entry}
+                  featured={workIds.includes(entry.id)}
+                />
+              ))}
+            </div>
+            <p class="catalog-empty" data-catalog-empty hidden>Для цієї комбінації ще немає карток.</p>
+          </div>
+
+          <div class="split-detail-col">
+            <CardDrawer renderedEntries={renderedEntries} defaultCardId={workIds[0]} />
+          </div>
         </div>
-        <p class="catalog-empty" data-catalog-empty hidden>Для цієї комбінації ще немає карток.</p>
       </div>
     </section>
 
@@ -96,7 +93,6 @@ const renderedEntries = await Promise.all(
         <a href="/about">Як ми перевіряємо картки <span aria-hidden="true">→</span></a>
       </div>
     </section>
-    <CardDrawer renderedEntries={renderedEntries} />
   </main>
 </BaseLayout>
 
@@ -105,18 +101,45 @@ const renderedEntries = await Promise.all(
   const platformSelect = document.querySelector<HTMLSelectElement>('[data-platform-filter]');
   const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-catalog-card]'));
   const empty = document.querySelector<HTMLElement>('[data-catalog-empty]');
+  const countEl = document.getElementById('visible-count');
   let activeCategory = 'all';
 
   const applyFilters = () => {
     const platform = platformSelect?.value ?? 'all';
     let visible = 0;
+    let firstVisibleCardId: string | null = null;
+
     for (const card of cards) {
-      const categoryMatch = activeCategory === 'all' || card.dataset.category === activeCategory;
+      let categoryMatch = false;
+      if (activeCategory === 'all') {
+        categoryMatch = true;
+      } else if (activeCategory === 'featured') {
+        categoryMatch = card.dataset.featured === 'true';
+      } else {
+        categoryMatch = card.dataset.category === activeCategory;
+      }
+
       const platformMatch = platform === 'all' || (card.dataset.platforms ?? '').split(',').includes(platform);
       card.hidden = !(categoryMatch && platformMatch);
-      if (!card.hidden) visible += 1;
+      if (!card.hidden) {
+        visible += 1;
+        if (!firstVisibleCardId && card.dataset.cardId) {
+          firstVisibleCardId = card.dataset.cardId;
+        }
+      }
     }
+
     if (empty) empty.hidden = visible !== 0;
+    if (countEl) countEl.textContent = String(visible);
+
+    // If on desktop (>=1080px) and active card is hidden, switch to first visible
+    if (window.innerWidth >= 1080 && firstVisibleCardId) {
+      const activeCard = cards.find((c) => c.classList.contains('is-active'));
+      if (activeCard && activeCard.hidden) {
+        const trigger = document.querySelector<HTMLElement>(`[data-open-drawer="${firstVisibleCardId}"]`);
+        trigger?.click();
+      }
+    }
   };
 
   categoryButtons.forEach((button) => button.addEventListener('click', () => {
@@ -128,6 +151,7 @@ const renderedEntries = await Promise.all(
     });
     applyFilters();
   }));
+
   platformSelect?.addEventListener('change', applyFilters);
 
   // Copy command buttons on cards
