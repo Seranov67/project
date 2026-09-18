@@ -82,3 +82,31 @@ input?.addEventListener('input', () => {
   window.clearTimeout(timer);
   timer = window.setTimeout(() => renderSearch(input.value), 160);
 });
+
+input?.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  const items = [...(results?.querySelectorAll('.search-result') ?? [])];
+  if (!items.length) return;
+  e.preventDefault();
+  const focused = document.activeElement;
+  const idx = items.indexOf(focused);
+  if (e.key === 'ArrowDown') {
+    (idx < items.length - 1 ? items[idx + 1] : items[0])?.focus();
+  } else {
+    (idx <= 0 ? input : items[idx - 1])?.focus();
+  }
+});
+
+results?.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  const items = [...(results.querySelectorAll('.search-result') ?? [])];
+  if (!items.length) return;
+  e.preventDefault();
+  const focused = document.activeElement;
+  const idx = items.indexOf(focused);
+  if (e.key === 'ArrowDown') {
+    (idx < items.length - 1 ? items[idx + 1] : items[0])?.focus();
+  } else {
+    (idx <= 0 ? input : items[idx - 1])?.focus();
+  }
+});

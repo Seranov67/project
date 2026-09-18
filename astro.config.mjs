@@ -10,6 +10,7 @@ export default defineConfig({
   site,
   output: 'static',
   trailingSlash: 'never',
+  prefetch: { defaultStrategy: 'hover' },
   integrations: [sitemap()],
   markdown: {
     shikiConfig: {
