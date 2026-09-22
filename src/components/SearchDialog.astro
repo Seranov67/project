@@ -10,10 +10,18 @@
     <label class="search-field">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
       <span class="sr-only">Пошуковий запит</span>
-      <input id="search-input" type="search" placeholder="docker logs, права файлів, HTTP 500…" autocomplete="off" />
+      <input id="search-input" type="search" placeholder="docker logs, права файлів, HTTP 500…" autocomplete="off" aria-controls="search-results" />
       <kbd>Esc</kbd>
     </label>
-    <p class="search-help">Пошук працює за назвами, командами, тегами й українськими описами.</p>
+    <div class="search-guide">
+      <p class="search-help">Повнотекстовий пошук у назвах, командах, тегах та інструкціях.</p>
+      <div class="search-suggestions" aria-label="Приклади запитів">
+        <button type="button" data-search-suggestion="ansible">ansible</button>
+        <button type="button" data-search-suggestion="rdp">rdp</button>
+        <button type="button" data-search-suggestion="docker logs">docker logs</button>
+        <button type="button" data-search-suggestion="dns">dns</button>
+      </div>
+    </div>
     <div class="search-results" id="search-results" aria-live="polite">
       <div class="search-empty">
         <span aria-hidden="true">⌘</span>

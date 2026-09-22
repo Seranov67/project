@@ -10,6 +10,7 @@ interface Props {
 const { entry, featured = false } = Astro.props;
 const category = getCategory(entry.data.category);
 const cmd = entry.data.quickCmd;
+const searchText = [entry.data.title, entry.data.description, entry.data.tags.join(' '), cmd ?? '', entry.data.testedWith].join(' ').toLocaleLowerCase('uk');
 ---
 
 <article
@@ -19,6 +20,7 @@ const cmd = entry.data.quickCmd;
   data-category={entry.data.category}
   data-platforms={entry.data.platforms.join(',')}
   data-featured={featured ? 'true' : 'false'}
+  data-search={searchText}
   data-open-drawer={entry.id}
 >
   <div class="card-topline">

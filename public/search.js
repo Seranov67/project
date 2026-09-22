@@ -74,6 +74,7 @@ dialog?.addEventListener('click', (event) => { if (event.target === dialog) dial
 document.addEventListener('keydown', (event) => {
   const target = event.target;
   if (event.key === '/' && target instanceof HTMLElement && !target.matches('input, textarea, select, [contenteditable="true"]')) {
+    if (document.querySelector('[data-catalog-search]')) return;
     event.preventDefault();
     openSearch();
   }
@@ -81,4 +82,13 @@ document.addEventListener('keydown', (event) => {
 input?.addEventListener('input', () => {
   window.clearTimeout(timer);
   timer = window.setTimeout(() => renderSearch(input.value), 160);
+});
+
+document.querySelectorAll('[data-search-suggestion]').forEach((button) => {
+  button.addEventListener('click', () => {
+    if (!input) return;
+    input.value = button.dataset.searchSuggestion ?? '';
+    input.focus();
+    renderSearch(input.value);
+  });
 });

@@ -7,6 +7,7 @@ import { categories } from '@/data/catalog';
 
 const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order - b.data.order);
 const workIds = ['ansible-control-node', 'windows-gpo-msi', 'windows-rdp-client', 'linux-dns-wireguard', 'rsync-remote-copy', 'guardant-network-license'];
+const categoryCounts = Object.fromEntries(categories.map((category) => [category.slug, entries.filter((entry) => entry.data.category === category.slug).length]));
 
 const renderedEntries = await Promise.all(
   entries.map(async (entry) => {
@@ -26,13 +27,14 @@ const renderedEntries = await Promise.all(
           <p class="app-hero-lede">Короткі перевірені сценарії для Linux, Windows та мережі: що виконати, який ризик і як переконатися в результаті.</p>
         </div>
         <div class="app-hero-actions">
-          <button class="hero-search app-hero-search" type="button" data-open-search aria-haspopup="dialog">
+          <label class="catalog-search" for="catalog-search-input">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
-            <span>
-              <strong>Знайти команду</strong>
-              <small>docker, wireguard, rdp, rsync…</small>
-            </span>
+            <span class="sr-only">Пошук у каталозі</span>
+            <input id="catalog-search-input" type="search" placeholder="Команда, задача або помилка…" autocomplete="off" data-catalog-search />
             <kbd>/</kbd>
+          </label>
+          <button class="search-everywhere" type="button" data-open-search aria-haspopup="dialog">
+            Шукати всередині інструкцій <span aria-hidden="true">→</span>
           </button>
         </div>
       </div>
@@ -44,11 +46,11 @@ const renderedEntries = await Promise.all(
 
         <div class="filters" aria-label="Фільтри каталогу">
           <div class="filter-group" role="group" aria-label="Категорія">
-            <button class="filter-chip is-active" type="button" data-category-filter="all" aria-pressed="true">Усі</button>
-            <button class="filter-chip" type="button" data-category-filter="featured" aria-pressed="false">⭐ Швидкі</button>
+            <button class="filter-chip is-active" type="button" data-category-filter="all" aria-pressed="true">Усі <small>{entries.length}</small></button>
+            <button class="filter-chip" type="button" data-category-filter="featured" aria-pressed="false">★ Часті <small>{workIds.length}</small></button>
             {categories.map((category) => (
               <button class="filter-chip" type="button" data-category-filter={category.slug} aria-pressed="false">
-                <span aria-hidden="true">{category.mark}</span> {category.label}
+                <span aria-hidden="true">{category.mark}</span> {category.label} <small>{categoryCounts[category.slug]}</small>
               </button>
             ))}
           </div>
@@ -64,8 +66,8 @@ const renderedEntries = await Promise.all(
         </div>
 
         <div class="catalog-subhead" data-pagefind-ignore>
-          <span class="catalog-count"><strong id="visible-count">{entries.length}</strong> сценаріїв</span>
-          <span class="catalog-hint">Клікніть будь-яку картку, щоб відкрити повні кроки</span>
+          <span class="catalog-count"><strong id="visible-count">{entries.length}</strong> <span id="result-label">сценаріїв</span></span>
+          <button class="catalog-reset" type="button" data-catalog-reset hidden>Очистити фільтри</button>
         </div>
 
         <div class="cheat-grid" data-catalog-grid>
@@ -97,10 +99,14 @@ const renderedEntries = await Promise.all(
   const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-catalog-card]'));
   const empty = document.querySelector<HTMLElement>('[data-catalog-empty]');
   const countEl = document.getElementById('visible-count');
+  const resultLabel = document.getElementById('result-label');
+  const searchInput = document.querySelector<HTMLInputElement>('[data-catalog-search]');
+  const resetButton = document.querySelector<HTMLButtonElement>('[data-catalog-reset]');
   let activeCategory = 'all';
 
   const applyFilters = () => {
     const platform = platformSelect?.value ?? 'all';
+    const query = (searchInput?.value ?? '').trim().toLocaleLowerCase('uk');
     let visible = 0;
 
     for (const card of cards) {
@@ -114,12 +120,16 @@ const renderedEntries = await Promise.all(
       }
 
       const platformMatch = platform === 'all' || (card.dataset.platforms ?? '').split(',').includes(platform);
-      card.hidden = !(categoryMatch && platformMatch);
+      const searchable = card.dataset.search ?? '';
+      const searchMatch = !query || query.split(/\s+/).every((token) => searchable.includes(token));
+      card.hidden = !(categoryMatch && platformMatch && searchMatch);
       if (!card.hidden) visible += 1;
     }
 
     if (empty) empty.hidden = visible !== 0;
     if (countEl) countEl.textContent = String(visible);
+    if (resultLabel) resultLabel.textContent = query ? 'знайдено' : 'сценаріїв';
+    if (resetButton) resetButton.hidden = activeCategory === 'all' && platform === 'all' && !query;
   };
 
   categoryButtons.forEach((button) => button.addEventListener('click', () => {
@@ -133,6 +143,27 @@ const renderedEntries = await Promise.all(
   }));
 
   platformSelect?.addEventListener('change', applyFilters);
+  searchInput?.addEventListener('input', applyFilters);
+  resetButton?.addEventListener('click', () => {
+    activeCategory = 'all';
+    if (platformSelect) platformSelect.value = 'all';
+    if (searchInput) searchInput.value = '';
+    categoryButtons.forEach((button) => {
+      const active = button.dataset.categoryFilter === 'all';
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    applyFilters();
+    searchInput?.focus();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    const target = event.target as HTMLElement;
+    if (event.key === '/' && !target.matches('input, textarea, select, [contenteditable="true"]')) {
+      event.preventDefault();
+      searchInput?.focus();
+    }
+  });
 
   // Copy command buttons on cards
   document.addEventListener('click', (e) => {
