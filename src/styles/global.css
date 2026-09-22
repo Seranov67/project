@@ -459,7 +459,8 @@ body.has-drawer-open {
 
 /* Command Center */
 .command-center-section { padding: 1.25rem 0 4rem; background: var(--surface); border-block: 1px solid var(--line); }
-.command-center-layout { display: grid; grid-template-columns: 12rem minmax(20rem, 23rem) minmax(30rem, 1fr); gap: 1rem; align-items: start; }
+.header-inner, .app-hero.shell, .command-center-layout { width: min(112rem, calc(100% - 3rem)); }
+.command-center-layout { display: grid; grid-template-columns: 13.5rem minmax(24rem, 27rem) minmax(34rem, 1fr); gap: 1.15rem; align-items: start; }
 .workspace-nav { position: sticky; top: 5.5rem; min-width: 0; }
 .workspace-nav-heading { padding: 0.75rem 0.7rem 1rem; border-bottom: 1px solid var(--line); }
 .workspace-nav-heading .eyebrow { margin-bottom: 0.25rem; }
@@ -511,6 +512,7 @@ body.has-drawer-open {
 }
 
 @media (max-width: 1100px) {
+  .header-inner, .app-hero.shell, .command-center-layout { width: min(74rem, calc(100% - 2.5rem)); }
   .command-center-layout { grid-template-columns: 11rem minmax(0, 1fr); }
   .command-center-layout > .card-drawer-root { position: fixed; inset: 0; top: 0; z-index: 90; height: auto; min-height: 0; visibility: hidden; pointer-events: none; }
   .command-center-layout > .card-drawer-root.is-open { visibility: visible; pointer-events: auto; }
@@ -678,6 +680,7 @@ body.has-drawer-open {
   .work-shortcuts-grid { grid-template-columns: 1fr; }
   .catalog-section { padding-block: 4rem; }
   .command-center-section { padding-block: 0.75rem 3rem; }
+  .header-inner, .app-hero.shell, .command-center-layout { width: min(100% - 1.25rem, 74rem); }
   .command-center-layout { grid-template-columns: 1fr; }
   .workspace-nav { position: static; }
   .workspace-nav-heading, .workspace-nav-note { display: none; }

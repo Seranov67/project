@@ -161,7 +161,13 @@
     if (event.key === 'Escape' && root?.classList.contains('is-open')) closeDrawer();
   });
   const initialCard = window.location.hash.startsWith('#card-') ? window.location.hash.replace('#card-', '') : '';
-  if (initialCard) openDrawer(initialCard, false);
+  if (initialCard) {
+    openDrawer(initialCard, false);
+  } else if (window.matchMedia('(min-width: 1101px)').matches) {
+    const firstCard = document.querySelector<HTMLElement>('[data-catalog-card]');
+    const firstCardId = firstCard?.dataset.cardId;
+    if (firstCardId) openDrawer(firstCardId, false);
+  }
   window.addEventListener('hashchange', () => {
     const cardId = window.location.hash.startsWith('#card-') ? window.location.hash.replace('#card-', '') : '';
     if (cardId && cardId !== activeCardId) openDrawer(cardId, false);
