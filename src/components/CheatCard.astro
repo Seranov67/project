@@ -5,22 +5,27 @@ import { getCategory, platformLabels, riskLabels } from '@/data/catalog';
 interface Props {
   entry: CollectionEntry<'cheatsheets'>;
   featured?: boolean;
+  workspace?: boolean;
 }
 
-const { entry, featured = false } = Astro.props;
+const { entry, featured = false, workspace = false } = Astro.props;
 const category = getCategory(entry.data.category);
 const cmd = entry.data.quickCmd;
 const searchText = [entry.data.title, entry.data.description, entry.data.tags.join(' '), cmd ?? '', entry.data.testedWith].join(' ').toLocaleLowerCase('uk');
 ---
 
 <article
-  class={`cheat-card${featured ? ' cheat-card--featured' : ''}`}
+  class={`cheat-card${featured ? ' cheat-card--featured' : ''}${workspace ? ' workspace-card' : ''}`}
   data-catalog-card
   data-card-id={entry.id}
   data-category={entry.data.category}
   data-platforms={entry.data.platforms.join(',')}
   data-featured={featured ? 'true' : 'false'}
   data-search={searchText}
+  data-category-label={category?.label ?? ''}
+  data-category-mark={category?.mark ?? ''}
+  data-risk-label={riskLabels[entry.data.risk]}
+  data-risk-class={`risk-${entry.data.risk}`}
   data-open-drawer={entry.id}
 >
   <div class="card-topline">

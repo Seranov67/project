@@ -1,5 +1,5 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CheatCard from '@/components/CheatCard.astro';
 import CardDrawer from '@/components/CardDrawer.astro';
@@ -9,12 +9,6 @@ const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order
 const workIds = ['ansible-control-node', 'windows-gpo-msi', 'windows-rdp-client', 'linux-dns-wireguard', 'rsync-remote-copy', 'guardant-network-license'];
 const categoryCounts = Object.fromEntries(categories.map((category) => [category.slug, entries.filter((entry) => entry.data.category === category.slug).length]));
 
-const renderedEntries = await Promise.all(
-  entries.map(async (entry) => {
-    const { Content, headings } = await render(entry);
-    return { entry, Content, headings };
-  })
-);
 ---
 
 <BaseLayout>
@@ -40,20 +34,37 @@ const renderedEntries = await Promise.all(
       </div>
     </section>
 
-    <section class="catalog-section" id="catalog" aria-labelledby="catalog-title">
-      <div class="shell">
+    <section class="catalog-section command-center-section" id="catalog" aria-labelledby="catalog-title">
+      <div class="shell command-center-layout">
+        <aside class="workspace-nav" aria-label="Розділи довідника">
+          <div class="workspace-nav-heading">
+            <p class="eyebrow">Розділи</p>
+            <strong>20 робочих карток</strong>
+          </div>
+          <nav class="workspace-categories">
+            <button class="workspace-category is-active" type="button" data-category-filter="all" aria-pressed="true">
+              <span class="workspace-category-mark" aria-hidden="true">⌘</span><span>Усі сценарії</span><small>{entries.length}</small>
+            </button>
+            <button class="workspace-category" type="button" data-category-filter="featured" aria-pressed="false">
+              <span class="workspace-category-mark" aria-hidden="true">★</span><span>Часті</span><small>{workIds.length}</small>
+            </button>
+            {categories.map((category) => (
+              <button class="workspace-category" type="button" data-category-filter={category.slug} aria-pressed="false">
+                <span class="workspace-category-mark" aria-hidden="true">{category.mark}</span><span>{category.label}</span><small>{categoryCounts[category.slug]}</small>
+              </button>
+            ))}
+          </nav>
+          <div class="workspace-nav-note">
+            <kbd>/</kbd>
+            <span>Фокус на пошук</span>
+          </div>
+        </aside>
+
+        <div class="workspace-results">
         <h2 id="catalog-title" class="sr-only">Каталог карток OpsCards</h2>
 
         <div class="filters" aria-label="Фільтри каталогу">
-          <div class="filter-group" role="group" aria-label="Категорія">
-            <button class="filter-chip is-active" type="button" data-category-filter="all" aria-pressed="true">Усі <small>{entries.length}</small></button>
-            <button class="filter-chip" type="button" data-category-filter="featured" aria-pressed="false">★ Часті <small>{workIds.length}</small></button>
-            {categories.map((category) => (
-              <button class="filter-chip" type="button" data-category-filter={category.slug} aria-pressed="false">
-                <span aria-hidden="true">{category.mark}</span> {category.label} <small>{categoryCounts[category.slug]}</small>
-              </button>
-            ))}
-          </div>
+          <div class="active-section-label"><span>Перегляд</span><strong data-active-section>Усі сценарії</strong></div>
           <label class="platform-filter">
             <span>Платформа</span>
             <select data-platform-filter>
@@ -75,10 +86,14 @@ const renderedEntries = await Promise.all(
             <CheatCard
               entry={entry}
               featured={workIds.includes(entry.id)}
+              workspace
             />
           ))}
         </div>
         <p class="catalog-empty" data-catalog-empty hidden>Для цієї комбінації ще немає карток.</p>
+        </div>
+
+        <CardDrawer />
       </div>
     </section>
 
@@ -89,7 +104,6 @@ const renderedEntries = await Promise.all(
       </div>
     </section>
 
-    <CardDrawer renderedEntries={renderedEntries} />
   </main>
 </BaseLayout>
 
@@ -102,6 +116,7 @@ const renderedEntries = await Promise.all(
   const resultLabel = document.getElementById('result-label');
   const searchInput = document.querySelector<HTMLInputElement>('[data-catalog-search]');
   const resetButton = document.querySelector<HTMLButtonElement>('[data-catalog-reset]');
+  const activeSection = document.querySelector<HTMLElement>('[data-active-section]');
   let activeCategory = 'all';
 
   const applyFilters = () => {
@@ -139,6 +154,7 @@ const renderedEntries = await Promise.all(
       candidate.classList.toggle('is-active', active);
       candidate.setAttribute('aria-pressed', String(active));
     });
+    if (activeSection) activeSection.textContent = button.querySelector('span:nth-child(2)')?.textContent?.trim() ?? 'Усі сценарії';
     applyFilters();
   }));
 
@@ -153,6 +169,7 @@ const renderedEntries = await Promise.all(
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-pressed', String(active));
     });
+    if (activeSection) activeSection.textContent = 'Усі сценарії';
     applyFilters();
     searchInput?.focus();
   });
