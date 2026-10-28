@@ -1,0 +1,120 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+<BaseLayout title="Редактор карток" noindex>
+  <main class="shell editor-page" id="main-content">
+    <div class="editor-heading">
+      <div><p class="eyebrow">OpsCards</p><h1>Редактор карток</h1><p>Створюйте й оновлюйте робочі нотатки.</p></div>
+      <button class="editor-button editor-button-secondary" type="button" id="editor-logout" hidden>Вийти</button>
+    </div>
+    <p class="editor-message" id="editor-message" role="status" aria-live="polite"></p>
+    <section id="editor-login" hidden>
+      <p>Увійдіть через ваш GitHub, щоб редагувати картки.</p>
+      <a class="editor-button" href="/api/editor?action=login">Увійти через GitHub</a>
+    </section>
+    <section id="editor-app" hidden>
+      <div class="editor-layout">
+        <aside class="editor-sidebar">
+          <button class="editor-button" type="button" id="editor-new">+ Нова картка</button>
+          <label for="editor-select">Відкрити картку</label>
+          <select id="editor-select"><option value="">Оберіть картку</option></select>
+        </aside>
+        <form id="editor-form" class="editor-form" hidden>
+          <h2 id="editor-form-title">Нова картка</h2>
+          <label>Адреса картки <input name="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="80" placeholder="restart-dns" /><small>Малі латинські літери, цифри та дефіс.</small></label>
+          <label>Назва <input name="title" required maxlength="200" /></label>
+          <label>Опис <textarea name="description" required maxlength="1000" rows="2"></textarea></label>
+          <div class="editor-row">
+            <label>Категорія <select name="category" required><option value="linux">Linux</option><option value="windows">Windows</option><option value="services">Services</option><option value="containers">Containers</option><option value="network">Network</option><option value="git">Git</option><option value="operations">Operations</option></select></label>
+            <fieldset><legend>Платформа</legend><label><input type="checkbox" name="platform" value="linux" /> Linux</label><label><input type="checkbox" name="platform" value="windows" /> Windows</label><label><input type="checkbox" name="platform" value="macos" /> macOS</label></fieldset>
+          </div>
+          <label>Команда <textarea name="quickCmd" rows="2" maxlength="2000" placeholder="sudo systemctl restart systemd-resolved"></textarea></label>
+          <label>Додатковий текст <textarea name="body" rows="14" maxlength="50000" placeholder="Необов’язково. Можна додати кроки та пояснення у форматі Markdown."></textarea></label>
+          <p class="editor-help">Після збереження сайт оновиться автоматично, зазвичай за кілька хвилин. Картки публічні.</p>
+          <button class="editor-button" type="submit">Зберегти картку</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+<style>
+  .editor-page { max-width: 68rem; padding-block: 3rem 6rem; }
+  .editor-heading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+  h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -.04em; }
+  .editor-heading p:last-child, .editor-help { color: var(--ink-soft); }
+  .editor-message:empty { display: none; }
+  .editor-message { padding: .8rem 1rem; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+  .editor-layout { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 2rem; margin-top: 2rem; }
+  .editor-sidebar, .editor-form { display: grid; align-content: start; gap: 1rem; }
+  .editor-sidebar label, .editor-form label { display: grid; gap: .35rem; font-weight: 650; }
+  .editor-form h2 { margin: 0; }
+  input:not([type=checkbox]), textarea, select { width: 100%; padding: .7rem; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); }
+  textarea { resize: vertical; }
+  small, .editor-help { font-size: .85rem; font-weight: 400; }
+  .editor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  fieldset { display: flex; gap: .8rem; flex-wrap: wrap; margin: 0; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+  fieldset label { display: flex !important; align-items: center; gap: .3rem !important; font-size: .9rem; }
+  .editor-button { display: inline-block; width: fit-content; padding: .7rem 1rem; border: 1px solid var(--ink); border-radius: var(--radius-sm); background: var(--ink); color: var(--bg); font-weight: 700; text-decoration: none; cursor: pointer; }
+  .editor-button-secondary { background: transparent; color: var(--ink); border-color: var(--line); }
+  @media (max-width: 700px) { .editor-layout, .editor-row { grid-template-columns: 1fr; } }
+</style>
+<script>
+  const login = document.querySelector<HTMLElement>('#editor-login')!;
+  const app = document.querySelector<HTMLElement>('#editor-app')!;
+  const message = document.querySelector<HTMLElement>('#editor-message')!;
+  const logout = document.querySelector<HTMLButtonElement>('#editor-logout')!;
+  const select = document.querySelector<HTMLSelectElement>('#editor-select')!;
+  const form = document.querySelector<HTMLFormElement>('#editor-form')!;
+  const formTitle = document.querySelector<HTMLElement>('#editor-form-title')!;
+  let sha = '';
+  let creating = true;
+  const input = (name: string) => form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+  const api = async (action: string, options: RequestInit = {}) => {
+    const response = await fetch(`/api/editor?${action}`, { ...options, headers: { 'Content-Type': 'application/json' }, cache: 'no-store' });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Помилка запиту.');
+    return result;
+  };
+  const list = async () => {
+    const data = await api('action=list');
+    select.replaceChildren(new Option('Оберіть картку', ''), ...data.cards.map((c: { slug: string }) => new Option(c.slug, c.slug)));
+  };
+  const load = async (slug: string) => {
+    if (!slug) { form.hidden = true; return; }
+    message.textContent = 'Завантажуємо картку…';
+    try {
+      const { data, body, sha: newSha } = await api(`action=card&slug=${encodeURIComponent(slug)}`);
+      form.reset(); creating = false; sha = newSha;
+      input('slug').value = slug; (input('slug') as HTMLInputElement).readOnly = true;
+      for (const name of ['title', 'description', 'category', 'quickCmd']) input(name).value = data[name] || '';
+      input('body').value = body;
+      form.querySelectorAll<HTMLInputElement>('[name=platform]').forEach((checkbox) => { checkbox.checked = data.platforms?.includes(checkbox.value); });
+      formTitle.textContent = 'Редагувати картку'; form.hidden = false; message.textContent = '';
+    } catch (error) { message.textContent = (error as Error).message; }
+  };
+  document.querySelector('#editor-new')?.addEventListener('click', () => {
+    form.reset(); creating = true; sha = ''; select.value = '';
+    (input('slug') as HTMLInputElement).readOnly = false; formTitle.textContent = 'Нова картка'; form.hidden = false; message.textContent = '';
+    input('slug').focus();
+  });
+  select.addEventListener('change', () => load(select.value));
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const platforms = Array.from(form.querySelectorAll<HTMLInputElement>('[name=platform]:checked')).map((checkbox) => checkbox.value);
+    if (!platforms.length) { message.textContent = 'Оберіть хоча б одну платформу.'; return; }
+    const button = form.querySelector<HTMLButtonElement>('[type=submit]')!; button.disabled = true;
+    message.textContent = 'Зберігаємо…';
+    try {
+      const slug = input('slug').value;
+      await api(`action=card&slug=${encodeURIComponent(slug)}`, { method: 'POST', body: JSON.stringify({ title: input('title').value, description: input('description').value, category: input('category').value, quickCmd: input('quickCmd').value, body: input('body').value, platforms, sha, create: creating }) });
+      await list(); select.value = slug; await load(slug);
+      message.textContent = 'Картку збережено. Оновлення сайту може тривати кілька хвилин.';
+    } catch (error) { message.textContent = (error as Error).message; }
+    finally { button.disabled = false; }
+  });
+  logout.addEventListener('click', async () => { try { await api('action=logout', { method: 'POST' }); location.reload(); } catch (error) { message.textContent = (error as Error).message; } });
+  const error = new URLSearchParams(location.search).get('error');
+  if (error) message.textContent = error === 'access' ? 'Доступ дозволено лише власнику OpsCards.' : 'Не вдалося увійти через GitHub.';
+  try { await api('action=session'); await list(); app.hidden = false; logout.hidden = false; }
+  catch (error) { login.hidden = false; if ((error as Error).message !== 'Увійдіть через GitHub.') message.textContent = (error as Error).message; }
+</script>
