@@ -6,7 +6,7 @@ import CardDrawer from '@/components/CardDrawer.astro';
 import { categories } from '@/data/catalog';
 
 const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order - b.data.order);
-const workIds = ['ansible-control-node', 'windows-gpo-msi', 'windows-rdp-client', 'linux-dns-wireguard', 'rsync-remote-copy', 'guardant-network-license'];
+const workIds = ['ansible-control-node', 'total-commander-files', 'windows-gpo-msi', 'windows-rdp-client', 'linux-dns-wireguard', 'rsync-remote-copy', 'guardant-network-license'];
 const categoryCounts = Object.fromEntries(categories.map((category) => [category.slug, entries.filter((entry) => entry.data.category === category.slug).length]));
 
 ---
@@ -39,7 +39,7 @@ const categoryCounts = Object.fromEntries(categories.map((category) => [category
         <aside class="workspace-nav" aria-label="Розділи довідника">
           <div class="workspace-nav-heading">
             <p class="eyebrow">Розділи</p>
-            <strong>20 робочих карток</strong>
+            <strong>{entries.length} робочих карток</strong>
           </div>
           <nav class="workspace-categories">
             <button class="workspace-category is-active" type="button" data-category-filter="all" aria-pressed="true">
