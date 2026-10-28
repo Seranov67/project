@@ -36,14 +36,14 @@ const sectionHeadings = headings.filter((heading) => heading.depth === 2);
         <header class="cheat-header">
           <div class="card-topline">
             <span class="category-label"><span aria-hidden="true">{category?.mark}</span> {category?.label}</span>
-            <span class={`risk-badge risk-${entry.data.risk}`}>{riskLabels[entry.data.risk]}</span>
+            {entry.data.risk && <span class={`risk-badge risk-${entry.data.risk}`}>{riskLabels[entry.data.risk]}</span>}
           </div>
           <h1 data-pagefind-meta="title">{entry.data.title}</h1>
           <p class="cheat-description" data-pagefind-meta="description">{entry.data.description}</p>
           <div class="fact-row">
             <span><small>Платформа</small>{entry.data.platforms.map((platform) => platformLabels[platform]).join(' · ')}</span>
-            <span><small>Перевірено з</small>{entry.data.testedWith}</span>
-            <span><small>Оновлено</small><time datetime={entry.data.updated.toISOString()}>{formatDate(entry.data.updated)}</time></span>
+            {entry.data.testedWith && <span><small>Перевірено з</small>{entry.data.testedWith}</span>}
+            {entry.data.updated && <span><small>Оновлено</small><time datetime={entry.data.updated.toISOString()}>{formatDate(entry.data.updated)}</time></span>}
           </div>
           <div hidden>
             <span data-pagefind-filter={`category:${entry.data.category}`}></span>
@@ -53,10 +53,11 @@ const sectionHeadings = headings.filter((heading) => heading.depth === 2);
         </header>
 
         <div class="prose">
+          {!entry.body?.trim() && entry.data.quickCmd && <pre><code>{entry.data.quickCmd}</code></pre>}
           <Content />
         </div>
 
-        <footer class="source-panel" data-pagefind-ignore>
+        {entry.data.sources.length > 0 && <footer class="source-panel" data-pagefind-ignore>
           <div>
             <p class="eyebrow">Офіційні джерела</p>
             <h2>Звірити синтаксис</h2>
@@ -66,7 +67,7 @@ const sectionHeadings = headings.filter((heading) => heading.depth === 2);
               <li><a href={source.url} rel="noreferrer">{source.label}<span aria-hidden="true"> ↗</span></a></li>
             ))}
           </ul>
-        </footer>
+        </footer>}
       </div>
 
       <aside class="cheat-aside" aria-label="На цій сторінці" data-pagefind-ignore>

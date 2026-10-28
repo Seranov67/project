@@ -5,21 +5,21 @@ import { z } from 'astro/zod';
 const cheatsheets = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/cheatsheets' }),
   schema: z.object({
-    title: z.string(),
-    description: z.string(),
+    title: z.string().trim().min(1),
+    description: z.string().trim().min(1),
     category: z.enum(['linux', 'services', 'containers', 'network', 'git', 'operations', 'windows']),
-    tags: z.array(z.string()).min(1),
+    tags: z.array(z.string()).default([]),
     platforms: z.array(z.enum(['linux', 'windows', 'macos'])).min(1),
-    testedWith: z.string(),
-    risk: z.enum(['safe', 'changes-system', 'destructive']),
-    updated: z.coerce.date(),
-    order: z.number().int().positive(),
+    testedWith: z.string().optional(),
+    risk: z.enum(['safe', 'changes-system', 'destructive']).optional(),
+    updated: z.coerce.date().optional(),
+    order: z.number().int().positive().default(9999),
     featured: z.boolean().default(false),
     quickCmd: z.string().optional(),
     sources: z.array(z.object({
       label: z.string(),
       url: z.url(),
-    })).min(1),
+    })).default([]),
   }),
 });
 

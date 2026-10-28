@@ -24,15 +24,15 @@ const searchText = [entry.data.title, entry.data.description, entry.data.tags.jo
   data-search={searchText}
   data-category-label={category?.label ?? ''}
   data-category-mark={category?.mark ?? ''}
-  data-risk-label={riskLabels[entry.data.risk]}
-  data-risk-class={`risk-${entry.data.risk}`}
+  data-risk-label={entry.data.risk ? riskLabels[entry.data.risk] : ''}
+  data-risk-class={entry.data.risk ? `risk-${entry.data.risk}` : ''}
   data-open-drawer={entry.id}
 >
   <div class="card-topline">
     <a class="category-label" href={`/category/${entry.data.category}`}>
       <span aria-hidden="true">{category?.mark}</span> {category?.label}
     </a>
-    <span class={`risk-badge risk-${entry.data.risk}`}>{riskLabels[entry.data.risk]}</span>
+    {entry.data.risk && <span class={`risk-badge risk-${entry.data.risk}`}>{riskLabels[entry.data.risk]}</span>}
   </div>
   <h3>
     <a href={`/cards/${entry.id}`} data-open-drawer={entry.id}>
@@ -61,8 +61,7 @@ const searchText = [entry.data.title, entry.data.description, entry.data.tags.jo
   )}
 
   <div class="card-meta">
-    <span>{entry.data.testedWith}</span>
-    <span aria-hidden="true">·</span>
+    {entry.data.testedWith && <><span>{entry.data.testedWith}</span><span aria-hidden="true">·</span></>}
     <span>{entry.data.platforms.map((platform) => platformLabels[platform]).join(' / ')}</span>
   </div>
   <a

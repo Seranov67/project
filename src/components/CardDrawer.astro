@@ -115,6 +115,7 @@
     if (riskField) {
       riskField.textContent = card.dataset.riskLabel ?? '';
       riskField.className = `risk-badge drawer-risk ${card.dataset.riskClass ?? ''}`;
+      riskField.hidden = !card.dataset.riskLabel;
     }
     if (fullscreenLink) fullscreenLink.href = `/cards/${cardId}/`;
     try {
