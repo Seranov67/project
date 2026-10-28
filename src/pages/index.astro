@@ -6,7 +6,7 @@ import CardDrawer from '@/components/CardDrawer.astro';
 import { categories } from '@/data/catalog';
 
 const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order - b.data.order);
-const workIds = ['ansible-control-node', 'total-commander-files', 'windows-gpo-msi', 'windows-rdp-client', 'linux-dns-wireguard', 'rsync-remote-copy', 'guardant-network-license'];
+const workIds = ['ansible-control-node', 'midnight-commander-files', 'windows-gpo-msi', 'windows-rdp-client', 'linux-dns-wireguard', 'rsync-remote-copy', 'guardant-network-license'];
 const categoryCounts = Object.fromEntries(categories.map((category) => [category.slug, entries.filter((entry) => entry.data.category === category.slug).length]));
 
 ---

@@ -160,7 +160,11 @@
   window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && root?.classList.contains('is-open')) closeDrawer();
   });
-  const initialCard = window.location.hash.startsWith('#card-') ? window.location.hash.replace('#card-', '') : '';
+  const cardFromHash = () => {
+    const id = window.location.hash.startsWith('#card-') ? window.location.hash.slice(6) : '';
+    return id === 'total-commander-files' ? 'midnight-commander-files' : id;
+  };
+  const initialCard = cardFromHash();
   if (initialCard) {
     openDrawer(initialCard, false);
   } else if (window.matchMedia('(min-width: 1101px)').matches) {
@@ -169,7 +173,7 @@
     if (firstCardId) openDrawer(firstCardId, false);
   }
   window.addEventListener('hashchange', () => {
-    const cardId = window.location.hash.startsWith('#card-') ? window.location.hash.replace('#card-', '') : '';
+    const cardId = cardFromHash();
     if (cardId && cardId !== activeCardId) openDrawer(cardId, false);
   });
 </script>
