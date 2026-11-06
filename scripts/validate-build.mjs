@@ -1,4 +1,5 @@
 import { access, readdir, readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 
 const contentDir = new URL('../src/content/cheatsheets/', import.meta.url);
 const files = (await readdir(contentDir)).filter((file) => file.endsWith('.md'));
@@ -12,6 +13,15 @@ const required = [
 ];
 
 await Promise.all(required.map((path) => access(path)));
+
+const index = JSON.parse(await readFile(new URL('../dist/search-index.json', import.meta.url), 'utf8'));
+if (!Array.isArray(index.cards) || index.cards.length !== files.length) throw new Error('Неповний індекс пошуку.');
+for (const file of files) {
+  const raw = await readFile(new URL(file, contentDir));
+  const sha = createHash('sha1').update(`blob ${raw.length}\0`).update(raw).digest('hex');
+  const card = index.cards.find((entry) => entry.id === file.replace(/\.md$/, ''));
+  if (card?.contentSha !== sha) throw new Error(`${file}: індекс пошуку застарів.`);
+}
 
 for (const file of files) {
   const route = new URL(`../dist/cards/${file.replace(/\.md$/, '')}/index.html`, import.meta.url);

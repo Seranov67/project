@@ -40,6 +40,7 @@ const sectionHeadings = headings.filter((heading) => heading.depth === 2);
           </div>
           <h1 data-pagefind-meta="title">{entry.data.title}</h1>
           <p class="cheat-description" data-pagefind-meta="description">{entry.data.description}</p>
+          <a class="card-edit-link" href={`/admin?card=${entry.id}`}>Редагувати картку →</a>
           <div class="fact-row">
             <span><small>Платформа</small>{entry.data.platforms.map((platform) => platformLabels[platform]).join(' · ')}</span>
             {entry.data.testedWith && <span><small>Перевірено з</small>{entry.data.testedWith}</span>}
@@ -53,7 +54,7 @@ const sectionHeadings = headings.filter((heading) => heading.depth === 2);
         </header>
 
         <div class="prose">
-          {!entry.body?.trim() && entry.data.quickCmd && <pre><code>{entry.data.quickCmd}</code></pre>}
+          {entry.data.quickCmd && <pre><code>{entry.data.quickCmd}</code></pre>}
           <Content />
         </div>
 

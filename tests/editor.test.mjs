@@ -50,12 +50,14 @@ test('authentication rejects invalid state, wrong user, cross-origin writes and 
   globalThis.fetch = async (_url, init = {}) => {
     if (init.method === 'PUT') {
       saved = JSON.parse(init.body);
-      return new Response('{}', { status: 200 });
+      return new Response(JSON.stringify({ content: { sha: 'saved-sha' }, commit: { sha: 'commit-sha' } }), { status: 200 });
     }
     return new Response(JSON.stringify({ sha: 'new-sha', content: Buffer.from('---\ntitle: Old\ndescription: Old\ncategory: linux\nplatforms: [linux]\ntags: [ssh]\nsources:\n  - label: Docs\n    url: https://example.com\n---\nOld body').toString('base64') }), { status: 200 });
   };
   const updated = await call('card', 'POST', cookie, { query: { slug: 'test' }, headers: { origin: 'https://opscards.vercel.app' }, body: { title: 'New', description: 'Description', category: 'linux', platforms: ['linux'], quickCmd: 'pwd', body: 'New body', sha: 'new-sha' } });
   assert.equal(updated.statusCode, 200);
+  assert.equal(updated.body.sha, 'saved-sha');
+  assert.equal(updated.body.commit, 'commit-sha');
   const savedContent = Buffer.from(saved.content, 'base64').toString();
   assert.match(savedContent, /tags:\s*\n\s*- ssh/);
   assert.match(savedContent, /https:\/\/example.com/);

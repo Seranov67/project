@@ -2,7 +2,7 @@
 title: "Midnight Commander: виділення та файлові операції"
 description: Швидке виділення всіх файлів у каталозі, копіювання, переміщення, створення тек і видалення.
 category: linux
-tags: [linux, midnight commander, mc, файли, каталог, виділення, копіювання, f5, f6, f7, f8]
+tags: [linux, midnight commander, mc, shortcuts, файли, каталог, виділення, копіювання, f5, f6, f7, f8]
 platforms: [linux]
 testedWith: Документація Midnight Commander
 risk: changes-system

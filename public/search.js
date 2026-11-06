@@ -1,94 +1,42 @@
+import { searchCards } from './card-search.js';
 const dialog = document.querySelector('#site-search');
 const input = document.querySelector('#search-input');
 const results = document.querySelector('#search-results');
-let pagefind;
 let timer;
-
-const setMessage = (message, symbol = '⌘') => {
-  if (!results) return;
-  results.replaceChildren();
-  const empty = document.createElement('div');
-  empty.className = 'search-empty';
-  const icon = document.createElement('span');
-  icon.setAttribute('aria-hidden', 'true');
-  icon.textContent = symbol;
-  const text = document.createElement('p');
-  text.textContent = message;
-  empty.append(icon, text);
-  results.append(empty);
-};
-
-const loadPagefind = async () => {
-  if (pagefind) return pagefind;
-  pagefind = await import('/pagefind/pagefind.js');
-  await pagefind.init();
-  return pagefind;
-};
-
-const renderSearch = async (query) => {
-  if (!results) return;
-  if (query.trim().length < 2) {
-    setMessage('Введіть щонайменше два символи.');
-    return;
-  }
-
-  setMessage('Шукаємо у перевірених картках…', '…');
+let request = 0;
+function message(text) { results.replaceChildren(); const p = document.createElement('p'); p.className = 'search-empty'; p.textContent = text; results.append(p); }
+async function renderSearch(query) {
+  const current = ++request;
+  if (!query.trim()) { message('Введіть команду, задачу або назву інструмента.'); return; }
+  message('Шукаємо…');
   try {
-    const engine = await loadPagefind();
-    const search = await engine.search(query.trim());
-    const items = await Promise.all(search.results.slice(0, 8).map((item) => item.data()));
+    const cards = await searchCards(query);
+    if (current !== request) return;
     results.replaceChildren();
-
-    if (items.length === 0) {
-      setMessage('Нічого не знайдено. Спробуйте назву інструмента або коротшу фразу.', '∅');
-      return;
-    }
-
-    for (const item of items) {
-      const link = document.createElement('a');
-      link.className = 'search-result';
-      link.href = item.url.length > 1 ? item.url.replace(/\/$/, '') : item.url;
-      const title = document.createElement('strong');
-      title.textContent = item.meta?.title ?? item.url;
-      const excerpt = document.createElement('span');
-      const parsed = new DOMParser().parseFromString(item.excerpt ?? '', 'text/html');
-      excerpt.textContent = parsed.body.textContent?.replace(/\s+/g, ' ').trim() ?? '';
-      link.append(title, excerpt);
+    if (!cards.length) { message('Нічого не знайдено. Спробуйте коротшу фразу.'); return; }
+    for (const card of cards.slice(0, 20)) {
+      const link = document.createElement('a'); link.className = 'search-result'; link.href = `/cards/${card.id}`;
+      const title = document.createElement('strong'); title.textContent = card.title;
+      const description = document.createElement('span'); description.textContent = card.description;
+      link.append(title, description);
+      if (card.command) { const code = document.createElement('code'); code.textContent = card.command; link.append(code); }
       results.append(link);
     }
-  } catch (error) {
-    console.warn('OpsCards search is unavailable', error);
-    setMessage('Пошуковий індекс доступний у зібраній версії сайту.', '!');
-  }
-};
-
-const openSearch = () => {
-  if (!dialog?.open) dialog?.showModal();
-  window.setTimeout(() => input?.focus(), 30);
-  loadPagefind().catch(() => undefined);
-};
-
+  } catch { if (current === request) message('Пошук тимчасово недоступний. Спробуйте ще раз.'); }
+}
+function openSearch() {
+  const local = document.querySelector('[data-sheet-search]');
+  if (local) { local.focus(); local.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+  if (!dialog.open) dialog.showModal();
+  input.focus();
+}
 document.querySelectorAll('[data-open-search]').forEach((button) => button.addEventListener('click', openSearch));
-document.querySelector('[data-close-search]')?.addEventListener('click', () => dialog?.close());
+document.querySelector('[data-close-search]')?.addEventListener('click', () => dialog.close());
 dialog?.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
 document.addEventListener('keydown', (event) => {
   const target = event.target;
-  if (event.key === '/' && target instanceof HTMLElement && !target.matches('input, textarea, select, [contenteditable="true"]')) {
-    if (document.querySelector('[data-catalog-search]')) return;
-    event.preventDefault();
-    openSearch();
-  }
+  if (!(target instanceof HTMLElement) || target.closest('input, textarea, select, [contenteditable="true"]')) return;
+  if (event.key === '/' || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k')) { event.preventDefault(); openSearch(); }
 });
-input?.addEventListener('input', () => {
-  window.clearTimeout(timer);
-  timer = window.setTimeout(() => renderSearch(input.value), 160);
-});
-
-document.querySelectorAll('[data-search-suggestion]').forEach((button) => {
-  button.addEventListener('click', () => {
-    if (!input) return;
-    input.value = button.dataset.searchSuggestion ?? '';
-    input.focus();
-    renderSearch(input.value);
-  });
-});
+input?.addEventListener('input', () => { ++request; clearTimeout(timer); timer = setTimeout(() => renderSearch(input.value), 100); });
+document.querySelectorAll('[data-search-suggestion]').forEach((button) => button.addEventListener('click', () => { input.value = button.dataset.searchSuggestion; input.focus(); renderSearch(input.value); }));

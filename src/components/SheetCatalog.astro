@@ -1,0 +1,30 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import SheetEntry from '@/components/SheetEntry.astro';
+import { categories } from '@/data/catalog';
+interface Props { entries: CollectionEntry<'cheatsheets'>[]; title?: string; description?: string; }
+const { entries, title = 'Робоча шпаргалка', description = 'Команди та пояснення для щоденної роботи.' } = Astro.props;
+const labels: Record<string, string> = { linux: 'Файли та диски', services: 'Служби та журнали', containers: 'Контейнери', network: 'Мережа та доступ', git: 'Git', operations: 'Робочі інструменти', windows: 'Windows та застосунки' };
+const groups = categories.map((category) => ({ ...category, entries: entries.filter((entry) => entry.data.category === category.slug) })).filter((group) => group.entries.length);
+---
+<main class="sheet-page shell" id="main-content" data-sheet>
+  <div class="sheet-title-row">
+    <div><p class="sheet-eyebrow">Особистий довідник</p><h1>{title}</h1><p class="sheet-intro">{description}</p></div>
+    <a class="sheet-add" href="/admin?new=1">+ Додати картку</a>
+  </div>
+  <div class="sheet-tools">
+    <nav class="sheet-tabs" aria-label="Аркуші шпаргалки">
+      <button type="button" data-sheet-tab="all" aria-pressed="true">Усі</button>
+      <button type="button" data-sheet-tab="linux" aria-pressed="false">Linux</button>
+      <button type="button" data-sheet-tab="windows" aria-pressed="false">Windows</button>
+      <button type="button" data-sheet-tab="shortcuts" aria-pressed="false">Клавіші</button>
+    </nav>
+    <label class="sheet-search"><span class="sr-only">Знайти команду або пояснення</span><input type="search" data-sheet-search placeholder="Знайти команду або пояснення…" autocomplete="off" aria-controls="sheet-content" /><kbd>/</kbd></label>
+  </div>
+  <div class="sheet-summary"><p data-sheet-count aria-live="polite">{entries.length} карток</p><button type="button" data-sheet-reset hidden>Скинути пошук і фільтр</button></div>
+  <div class="sheet-groups" id="sheet-content">
+    {groups.map((group) => <section class="sheet-group" data-sheet-group aria-labelledby={`group-${group.slug}`}><div class="sheet-group-heading"><h2 id={`group-${group.slug}`}>{labels[group.slug]}</h2><span data-group-count>{group.entries.length}</span></div>{group.entries.map((entry) => <SheetEntry entry={entry} />)}</section>)}
+  </div>
+  <div class="sheet-empty" data-sheet-empty hidden><h2>Нічого не знайдено</h2><p>Спробуйте назву інструмента, команду або коротшу фразу.</p><a href="/admin?new=1">Додати нову картку</a></div>
+</main>
+<script is:inline type="module" src="/sheet.js"></script>

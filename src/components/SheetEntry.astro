@@ -1,0 +1,26 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { platformLabels, riskLabels } from '@/data/catalog';
+interface Props { entry: CollectionEntry<'cheatsheets'>; }
+const { entry } = Astro.props;
+---
+<article class="sheet-entry" id={`card-${entry.id}`} data-sheet-entry data-card-id={entry.id} data-platforms={entry.data.platforms.join(',')} data-shortcuts={String(entry.data.tags.includes('shortcuts'))}>
+  <div class="sheet-entry-heading">
+    <h3><a href={`/cards/${entry.id}`}>{entry.data.title}</a></h3>
+    <div class="sheet-entry-actions">
+      {entry.data.quickCmd && <button type="button" data-copy-command={entry.data.quickCmd} aria-label={`Копіювати команду: ${entry.data.title}`}>Копіювати</button>}
+      <a href={`/admin?card=${entry.id}`} aria-label={`Редагувати: ${entry.data.title}`}>Змінити</a>
+    </div>
+  </div>
+  {entry.data.quickCmd && <pre class="sheet-command"><code>{entry.data.quickCmd}</code></pre>}
+  <p class="sheet-description">{entry.data.description}</p>
+  <div class="sheet-entry-meta">
+    <span>{entry.data.platforms.map((platform) => platformLabels[platform]).join(' · ')}</span>
+    {entry.data.risk && <span class={`sheet-risk sheet-risk-${entry.data.risk}`}>{riskLabels[entry.data.risk]}</span>}
+  </div>
+  {entry.body?.trim() && <details class="sheet-details" data-card-details={entry.id}>
+    <summary>Кроки та пояснення</summary>
+    <div class="sheet-details-content prose" data-detail-content aria-live="polite"></div>
+    <noscript><a href={`/cards/${entry.id}`}>Відкрити повну інструкцію</a></noscript>
+  </details>}
+</article>

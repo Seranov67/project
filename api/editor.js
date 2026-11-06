@@ -111,7 +111,7 @@ export default async function handler(req, res) {
       return send(res, 200, { data, body, sha: file.sha });
     }
     if (action === 'card' && req.method === 'POST') {
-      const { title, description, category, platforms, quickCmd, body, sha, create } = req.body || {};
+      const { title, description, category, platforms, quickCmd, body, sha, create, tags } = req.body || {};
       if (typeof body !== 'string' || body.length > 50000 || typeof title !== 'string' || typeof description !== 'string' || typeof quickCmd !== 'string' || title.length > 200 || description.length > 1000 || quickCmd.length > 2000) return send(res, 400, { error: 'Перевірте довжину й формат полів.' });
       const existing = await github(`${base}/${slug}.md?ref=main`, auth.token);
       let data = {};
@@ -125,13 +125,18 @@ export default async function handler(req, res) {
         data = parseCard(Buffer.from(file.content, 'base64').toString('utf8')).data;
       }
       Object.assign(data, { title: title.trim(), description: description.trim(), category, platforms });
+      if (tags !== undefined) {
+        if (typeof tags !== 'string' || tags.length > 2000) return send(res, 400, { error: 'Перевірте формат тегів.' });
+        data.tags = [...new Set(tags.split(',').map((tag) => tag.trim()).filter(Boolean))];
+      }
       if (quickCmd.trim()) data.quickCmd = quickCmd.trim(); else delete data.quickCmd;
       try { validate(data, body); } catch (error) { return send(res, 400, { error: error.message }); }
       const content = `---\n${stringify(data)}---\n${body}`;
       const payload = { message: `${create ? 'docs: add' : 'docs: update'} ${slug} via OpsCards`, content: Buffer.from(content).toString('base64'), branch: 'main', ...(create ? {} : { sha }) };
       const response = await github(`${base}/${slug}.md`, auth.token, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!response.ok) return send(res, response.status === 409 || response.status === 422 ? 409 : 502, { error: 'GitHub не зберіг картку. Перевірте доступ застосунку або повторіть спробу.' });
-      return send(res, 200, { ok: true });
+      const saved = await response.json();
+      return send(res, 200, { ok: true, sha: saved.content?.sha ?? null, commit: saved.commit?.sha ?? null });
     }
     return send(res, 404, { error: 'Запит не знайдено.' });
   } catch (error) {
