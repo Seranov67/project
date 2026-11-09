@@ -39,6 +39,8 @@ reg delete "HKLM\Software\Microsoft\MSLicensing" /f
 
 ## Перевірити поточне налаштування діалогу
 
+<!-- opscards-note: 0 -->
+
 > **Ризик: безпечно.** Команда лише читає.
 
 ```cmd
@@ -51,6 +53,8 @@ reg query "HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\Client"
 
 **Перевірка:** перевірте результат виконаної команди.
 ## Тимчасово повернути старий діалог
+
+<!-- opscards-note: 1 -->
 
 > **Ризик: змінює систему.** `1` повертає стару версію діалогу, а не вимикає всі попередження.
 
@@ -66,6 +70,8 @@ reg add "HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\Client" /
 
 ## Повернути стандартну поведінку
 
+<!-- opscards-note: 2 -->
+
 > **Ризик: змінює систему.** Видаляється лише конкретне значення.
 
 ```cmd
@@ -79,6 +85,8 @@ reg delete "HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\Client
 **Перевірка:** перевірте результат виконаної команди.
 ## Зберегти кеш ліцензій
 
+<!-- opscards-note: 3 -->
+
 > **Ризик: безпечно.** Ekspорт створює резервну копію.
 
 ```cmd
@@ -91,6 +99,8 @@ reg export "HKLM\Software\Microsoft\MSLicensing" "%USERPROFILE%\Desktop\MSLicens
 
 **Перевірка:** перевірте результат виконаної команди.
 ## Відновити ліцензійний кеш
+
+<!-- opscards-note: 4 -->
 
 > **Ризик: незворотно.** Видалення очищає локальні токени. Робіть після backup і перевірки доступності сервера ліцензій.
 

@@ -1,5 +1,6 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { parse, stringify } from 'yaml';
+import { blobSha, noteIdPattern, validateNotebookNote } from '../src/lib/notebook.js';
 
 const origin = 'https://opscards.vercel.app';
 const repo = 'Seranov67/project';
@@ -48,14 +49,45 @@ function parseCard(content) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Некоректний заголовок картки.');
   return { data, body: match[2] };
 }
+function containsPrivateData(text) {
+  return [/\b(?:10\.\d{1,3}|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b/i, /\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.local\b/i, /\b(?:[0-9a-f]{2}:){5}[0-9a-f]{2}\b/i, /\b(?:--pass(?:word)?|ansible_(?:ssh_)?pass(?:word)?)\s*(?:=|\s+)\s*\S+/i].some((pattern) => pattern.test(text));
+}
 function validate(data, body) {
   const categories = ['linux', 'services', 'containers', 'network', 'git', 'operations', 'windows'];
   if (typeof data.title !== 'string' || !data.title.trim() || typeof data.description !== 'string' || !data.description.trim()) throw new Error('Вкажіть назву та опис.');
   if (!categories.includes(data.category) || !Array.isArray(data.platforms) || !data.platforms.length || data.platforms.some((p) => !['linux', 'windows', 'macos'].includes(p))) throw new Error('Вкажіть категорію та платформу.');
   if (data.quickCmd !== undefined && typeof data.quickCmd !== 'string') throw new Error('Команда має бути текстом.');
-  const text = stringify(data) + body;
-  const privateData = [/\b(?:10\.\d{1,3}|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b/i, /\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.local\b/i, /\b(?:[0-9a-f]{2}:){5}[0-9a-f]{2}\b/i, /\b(?:--pass(?:word)?|ansible_(?:ssh_)?pass(?:word)?)\s*(?:=|\s+)\s*\S+/i];
-  if (privateData.some((pattern) => pattern.test(text))) throw new Error('Текст містить можливу внутрішню адресу, MAC або пароль.');
+  if (containsPrivateData(stringify(data) + body)) throw new Error('Текст містить можливу внутрішню адресу, MAC або пароль.');
+}
+async function saveNotebookNote(req, res, slug, token) {
+  if (slug.length > 100 || !noteIdPattern.test(slug)) return send(res, 400, { error: 'Некоректна адреса нотатки.' });
+  const { note: input, revision } = req.body || {};
+  if (typeof revision !== 'string' || (revision && !/^[a-f0-9]{40}$/.test(revision))) return send(res, 400, { error: 'Некоректна версія нотатки.' });
+  let note;
+  try { note = validateNotebookNote(input, slug); }
+  catch (error) { return send(res, 400, { error: error.message }); }
+  const content = Buffer.from(JSON.stringify(note, null, 2) + '\n');
+  if (containsPrivateData([note.title, note.command, note.description, ...note.symptoms, ...note.sources.map((source) => source.url)].join('\n'))) {
+    return send(res, 400, { error: 'Нотатка містить можливу внутрішню адресу, MAC або пароль.' });
+  }
+  const path = `/repos/${repo}/contents/src/data/notebook-notes/${slug}.json`;
+  const existing = await github(`${path}?ref=main`, token);
+  if (!existing.ok && existing.status !== 404) return send(res, 502, { error: 'Не вдалося перевірити версію нотатки в GitHub.' });
+  const currentRevision = existing.ok ? (await existing.json()).sha : '';
+  if (currentRevision !== revision) return send(res, 409, { error: 'Нотатка змінилася. Оновіть сторінку після завершення публікації.' });
+  const response = await github(path, token, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: `docs: save notebook note ${slug}`, branch: 'main',
+      content: content.toString('base64'), ...(revision ? { sha: revision } : {}),
+    }),
+  });
+  if (!response.ok) {
+    if ([409, 422].includes(response.status)) return send(res, 409, { error: 'Нотатку змінили під час збереження. Оновіть сторінку й повторіть.' });
+    return send(res, 502, { error: 'GitHub не зберіг нотатку. Перевірте доступ і повторіть спробу.' });
+  }
+  return send(res, 200, { note: { ...note, revision: blobSha(content) } });
 }
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
@@ -67,7 +99,8 @@ export default async function handler(req, res) {
       const state = randomBytes(32).toString('base64url');
       const verifier = randomBytes(32).toString('base64url');
       const challenge = createHash('sha256').update(verifier).digest('base64url');
-      res.setHeader('Set-Cookie', `${stateName}=${seal({ state, verifier, exp: Date.now() + 600000 })}; ${options}; Max-Age=600`);
+      const destination = req.query.next === 'notebook' ? '/' : '/admin';
+      res.setHeader('Set-Cookie', `${stateName}=${seal({ state, verifier, destination, exp: Date.now() + 600000 })}; ${options}; Max-Age=600`);
       const url = new URL('https://github.com/login/oauth/authorize');
       for (const [k, v] of Object.entries({ client_id: process.env.GITHUB_CLIENT_ID, redirect_uri: `${origin}/api/editor?action=callback`, state, code_challenge: challenge, code_challenge_method: 'S256' })) url.searchParams.set(k, v);
       return redirect(res, url.toString());
@@ -84,7 +117,7 @@ export default async function handler(req, res) {
       const user = await userResponse.json();
       if (!userResponse.ok || user.id !== ownerId) return redirect(res, '/admin?error=access');
       res.setHeader('Set-Cookie', [`${stateName}=; ${options}; Max-Age=0`, `${cookieName}=${seal({ token, id: user.id, exp: Date.now() + 3600000 })}; ${options}; Max-Age=3600`]);
-      return redirect(res, '/admin');
+      return redirect(res, saved.destination === '/' ? '/' : '/admin');
     }
     const auth = session(req);
     if (!auth) return send(res, 401, { error: 'Увійдіть через GitHub.' });
@@ -95,6 +128,7 @@ export default async function handler(req, res) {
     }
     if (action === 'session' && req.method === 'GET') return send(res, 200, { login: 'Seranov67' });
     const slug = String(req.query.slug || '');
+    if (action === 'notebook-note' && req.method === 'POST') return await saveNotebookNote(req, res, slug, auth.token);
     const base = `/repos/${repo}/contents/src/content/cheatsheets`;
     if (action === 'list' && req.method === 'GET') {
       const response = await github(`${base}?ref=main`, auth.token);

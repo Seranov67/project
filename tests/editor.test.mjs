@@ -65,3 +65,49 @@ test('authentication rejects invalid state, wrong user, cross-origin writes and 
   assert.equal(saved.sha, 'new-sha');
   assert.equal((await call('session')).statusCode, 401);
 });
+
+test('notebook writes reuse owner login, protect stale revisions and persist symptoms', async () => {
+  const login = await call('login', 'GET', '', { query: { next: 'notebook' } });
+  const state = new URL(login.headers.Location).searchParams.get('state');
+  globalThis.fetch = async (url) => url === 'https://github.com/login/oauth/access_token'
+    ? new Response(JSON.stringify({ access_token: 'token' }))
+    : new Response(JSON.stringify({ id: 65553795 }));
+  const callback = await call('callback', 'GET', cookieOf(login.headers['Set-Cookie'], '__Host-opscards_oauth'), { query: { state, code: 'code' } });
+  assert.equal(callback.headers.Location, '/');
+  const cookie = cookieOf(callback.headers['Set-Cookie'], '__Host-opscards_session');
+  const note = {
+    id: 'linux-dns-wireguard--0', title: 'DNS', book: 'network', command: 'resolvectl status',
+    description: 'DNS check', originId: 'linux-dns-wireguard', originTitle: 'DNS',
+    platforms: ['linux'], lang: 'bash', tags: ['dns'], sources: [], symptoms: ['домен не відкривається'],
+  };
+  const options = { query: { slug: note.id }, headers: { origin: 'https://opscards.vercel.app' } };
+  const post = (body, overrides = {}) => call('notebook-note', 'POST', cookie, { ...options, body, ...overrides });
+  assert.equal((await call('notebook-note', 'POST', '', { ...options, body: { note, revision: '' } })).statusCode, 401);
+  assert.equal((await post({ note, revision: '' }, { headers: { origin: 'https://evil.example' } })).statusCode, 403);
+  assert.equal((await post({ note: { ...note, symptoms: ['10.123.23.10'] }, revision: '' })).statusCode, 400);
+  assert.equal((await post({ note: { ...note, symptoms: ['a\nb'] }, revision: '' })).statusCode, 400);
+  let currentRevision = '';
+  let written;
+  globalThis.fetch = async (url, init = {}) => {
+    assert.match(url, /\/src\/data\/notebook-notes\/linux-dns-wireguard--0\.json/);
+    if (init.method === 'PUT') {
+      written = JSON.parse(init.body);
+      return new Response('{}', { status: 200 });
+    }
+    return currentRevision ? new Response(JSON.stringify({ sha: currentRevision })) : new Response('{}', { status: 404 });
+  };
+  const saved = await post({ note, revision: '' });
+  assert.equal(saved.statusCode, 200);
+  assert.match(saved.body.note.revision, /^[a-f0-9]{40}$/);
+  assert.deepEqual(JSON.parse(Buffer.from(written.content, 'base64').toString()), note);
+  assert.equal(written.branch, 'main');
+  assert.ok(!Object.hasOwn(written, 'sha'));
+  currentRevision = saved.body.note.revision;
+  assert.equal((await post({ note, revision: '' })).statusCode, 409);
+  assert.equal((await post({ note: { ...note, title: 'DNS 2' }, revision: currentRevision })).statusCode, 200);
+  assert.equal(written.sha, currentRevision);
+  globalThis.fetch = async (_url, init = {}) => init.method === 'PUT'
+    ? new Response('{}', { status: 422 })
+    : new Response(JSON.stringify({ sha: currentRevision }));
+  assert.equal((await post({ note, revision: currentRevision })).statusCode, 409);
+});

@@ -40,6 +40,8 @@ reg delete "HKCU\Software\Autodesk\AutoCAD\R16.2\ACAD-1:409" /f
 
 ## Визначити версію Windows
 
+<!-- opscards-note: 0 -->
+
 > **Ризик: безпечно.**
 
 ```powershell
@@ -51,6 +53,8 @@ Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsBuildNumb
 **Перевірка:** підтверджено Windows 11 24H2 перед запуском оновлення.
 
 ## Перевірити диск перед оновленням
+
+<!-- opscards-note: 1 -->
 
 > **Ризик: безпечно.** Підготовка зменшує ризик простою.
 
@@ -64,6 +68,8 @@ Get-Volume | Select-Object DriveLetter, SizeRemaining, HealthStatus
 
 **Перевірка:** перевірте результат виконаної команди.
 ## Запустити 25H2
+
+<!-- opscards-note: 2 -->
 
 > **Ризик: змінює систему.** Оновлення може вимагати перезавантаження.
 
@@ -83,6 +89,8 @@ Get-ComputerInfo | Select-Object WindowsVersion, OsBuildNumber
 **Перевірка:** перевірте результат виконаної команди.
 ## Встановити AutoCAD із MSI
 
+<!-- opscards-note: 3 -->
+
 > **Ризик: змінює систему.** Використовуйте автентичний пакет.
 
 ```cmd
@@ -94,6 +102,8 @@ msiexec /i "C:\path\to\acad.msi" /L*V "%TEMP%\autocad-install.log"
 **Перевірка:** журнал не містить фатальної помилки, AutoCAD запускається.
 
 ## Скинути налаштування AutoCAD
+
+<!-- opscards-note: 4 -->
 
 > **Ризик: змінює систему.** Персоналізація буде втрачена. Зробіть backup реєстру перед видаленням.
 

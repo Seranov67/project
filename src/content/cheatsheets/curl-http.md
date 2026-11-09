@@ -20,6 +20,8 @@ sources:
 
 ## Побачити заголовки відповіді
 
+<!-- opscards-note: 0 -->
+
 > **Ризик: безпечно для GET.** Сервер усе одно може вести access log і рахувати запит.
 
 ```bash
@@ -32,6 +34,8 @@ curl --silent --show-error --dump-header - --output /dev/null <url>
 
 ## Отримати лише HTTP-статус
 
+<!-- opscards-note: 1 -->
+
 > **Ризик: безпечно для GET.** Зручно для health check та shell-умов.
 
 ```bash
@@ -43,6 +47,8 @@ curl --silent --output /dev/null --write-out '%{http_code}\n' <url>
 **Перевірка:** додайте `--fail`, якщо shell має отримати помилку на 4xx/5xx.
 
 ## Простежити redirects без downgrade
+
+<!-- opscards-note: 2 -->
 
 > **Ризик: безпечно для GET.** Обмеження протоколу не дозволяє redirect з HTTPS на HTTP.
 
@@ -60,6 +66,8 @@ curl --location --silent --output /dev/null --write-out '%{url_effective} %{http
 
 ## Розкласти затримку на етапи
 
+<!-- opscards-note: 3 -->
+
 > **Ризик: безпечно для GET.** Таймінги вимірюються з боку поточного host.
 
 ```bash
@@ -71,6 +79,8 @@ curl --silent --output /dev/null --write-out 'dns=%{time_namelookup}s connect=%{
 **Перевірка:** повторіть кілька разів, щоб відокремити стабільну затримку від одиничного промаху cache.
 
 ## Надіслати JSON і не приховати помилку
+
+<!-- opscards-note: 4 -->
 
 > **Ризик: змінює зовнішню систему.** POST може створити запис або запустити дію; спершу використайте test endpoint чи dry-run API.
 
@@ -86,6 +96,8 @@ curl --fail-with-body --show-error --request POST \
 **Перевірка:** збережіть request ID зі відповіді та виконайте окремий GET, якщо API його підтримує.
 
 ## Перевірити TLS negotiation
+
+<!-- opscards-note: 5 -->
 
 > **Ризик: безпечно.** Verbose-вивід може містити host, cookies й authorization headers — не публікуйте його без очищення.
 

@@ -40,6 +40,8 @@ Remove-PartitionAccessPath -DriveLetter R -AccessPath 'R:'
 
 ## Знайти помилку завантаження профілю
 
+<!-- opscards-note: 0 -->
+
 > **Ризик: безпечно.** Журнал допомагає відрізнити помилку профілю від проблем диска.
 
 ```powershell
@@ -51,6 +53,8 @@ Get-WinEvent -FilterHashtable @{LogName='Application'; ProviderName='Microsoft-W
 **Перевірка:** запишіть ID події та шлях до профілю.
 
 ## Зіставити SID з ProfileList
+
+<!-- opscards-note: 1 -->
 
 > **Ризик: безпечно.** Перегляд, не зміна.
 
@@ -66,6 +70,8 @@ reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
 **Перевірка:** перевірте результат виконаної команди.
 ## Зберегти backup ProfileList
 
+<!-- opscards-note: 2 -->
+
 > **Ризик: безпечно.** Робіть до будь-яких змін у реєстрі.
 
 ```cmd
@@ -76,6 +82,8 @@ reg export "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList" "%USE
 
 **Перевірка:** перевірте результат виконаної команди.
 ## Визначити Recovery-розділ
+
+<!-- opscards-note: 3 -->
 
 > **Ризик: безпечно.** Лише перегляд.
 
@@ -89,6 +97,8 @@ Get-Partition | Format-Table DiskNumber, PartitionNumber, DriveLetter, Type, Siz
 
 **Перевірка:** перевірте результат виконаної команди.
 ## Прибрати зайву букву Recovery
+
+<!-- opscards-note: 4 -->
 
 > **Ризик: змінює систему.** Спочатку запустіть із `-WhatIf`. Помилковий вибір тома зробить його недоступним.
 

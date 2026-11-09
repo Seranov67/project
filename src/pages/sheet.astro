@@ -1,0 +1,7 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SheetCatalog from '@/components/SheetCatalog.astro';
+const entries = (await getCollection('cheatsheets')).sort((a, b) => a.data.order - b.data.order);
+---
+<BaseLayout title="Шпаргалка"><SheetCatalog entries={entries} /></BaseLayout>

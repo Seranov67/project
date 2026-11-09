@@ -1,0 +1,118 @@
+---
+import '@/styles/notebook.css';
+import { notebookRecords } from '@/lib/notebook.js';
+
+const records = await notebookRecords();
+const data = JSON.stringify(records).replaceAll('<', '\\u003c');
+---
+<div id="opscards-quick-access" aria-label="Технічний блокнот OpsCards">
+  <div class="nb-toolbar">
+    <label class="nb-search"><span class="nb-sr">Пошук у нотатках</span><input id="nb-query" type="search" placeholder="Знайти команду чи нотатку…" autocomplete="off"><kbd>/</kbd></label>
+    <button class="nb-primary" type="button" id="nb-new" hidden><span>Нова нотатка</span></button>
+    <a class="nb-secondary" id="nb-login" href="/api/editor?action=login&amp;next=notebook" hidden>Увійти для редагування</a>
+  </div>
+  <div class="nb-layout">
+    <aside class="nb-sidebar">
+      <nav class="nb-home-nav" aria-label="Каталог і швидкий доступ">
+        <button type="button" class="nb-book" id="nb-catalog" aria-controls="nb-search-view"><span>Каталог команд</span></button>
+        <button type="button" class="nb-book" id="nb-quick" aria-controls="nb-quick-view"><span>Швидкий доступ</span></button>
+      </nav>
+      <p class="nb-side-label">Робочі розділи</p>
+      <nav id="nb-books" aria-label="Розділи блокнота"></nav>
+      <div class="nb-sidebar-bottom"><span>На основі ваших записів<br><span id="nb-source-count"></span></span></div>
+    </aside>
+    <main class="nb-main" id="main-content">
+      <div id="nb-read-view">
+        <button class="nb-secondary" id="nb-back-results" type="button" hidden></button>
+        <div class="nb-location"><span id="nb-book-name"></span><span aria-hidden="true">/</span><span id="nb-tool-name"></span></div>
+        <label class="nb-page-picker"><span>Сторінки розділу</span><select id="nb-page-select" aria-label="Сторінка розділу"></select></label>
+        <article class="nb-document" id="nb-document">
+          <div class="nb-note-meta"><span class="nb-platform" id="nb-platform"></span><span id="nb-origin-label"></span></div>
+          <div class="nb-title-line"><h1 id="nb-title"></h1><div class="nb-note-actions"><button class="nb-secondary nb-favorite" id="nb-favorite" type="button" aria-pressed="false">Обране</button><button class="nb-secondary" id="nb-edit" type="button">Редагувати</button></div></div>
+          <div id="nb-command-zone"></div>
+          <div class="nb-prose" id="nb-description"></div>
+          <div class="nb-sources" id="nb-sources"></div>
+        </article>
+        <nav class="nb-page-nav" aria-label="Сусідні нотатки"><button class="nb-text-button" id="nb-prev" type="button"></button><button class="nb-text-button" id="nb-next" type="button"></button></nav>
+      </div>
+      <section id="nb-quick-view" aria-labelledby="nb-quick-heading" hidden>
+        <h1 id="nb-quick-heading">Швидкий доступ</h1>
+        <section class="nb-quick-group" aria-labelledby="nb-favorites-heading">
+          <h2 id="nb-favorites-heading">Обране</h2>
+          <p id="nb-favorites-empty">Натисніть «Обране» в нотатці, щоб додати її сюди.</p>
+          <ul id="nb-favorites-list"></ul>
+        </section>
+        <section class="nb-quick-group" aria-labelledby="nb-recent-heading">
+          <h2 id="nb-recent-heading">Нещодавно відкриті</h2>
+          <ul id="nb-recent-list"></ul>
+        </section>
+      </section>
+      <section id="nb-search-view" hidden>
+        <div class="nb-search-heading">
+          <h1 id="nb-results-heading">Результати пошуку</h1>
+          <button class="nb-secondary" type="button" id="nb-clear-search">Закрити пошук</button>
+        </div>
+        <div class="nb-search-filters" id="nb-search-filters">
+          <fieldset id="nb-platform-filter">
+            <legend class="nb-sr">Фільтр за платформою</legend>
+            <label><input class="nb-sr" type="radio" name="nb-platform-filter" value="" checked><span>Усі</span></label>
+            <label><input class="nb-sr" type="radio" name="nb-platform-filter" value="linux"><span>Linux</span></label>
+            <label><input class="nb-sr" type="radio" name="nb-platform-filter" value="windows"><span>Windows</span></label>
+            <label><input class="nb-sr" type="radio" name="nb-platform-filter" value="macos"><span>macOS</span></label>
+          </fieldset>
+          <label class="nb-only-favorites"><input id="nb-only-favorites" type="checkbox">Лише обране</label>
+        </div>
+        <div class="nb-search-summary">
+          <p class="nb-result-count" id="nb-result-count" aria-live="polite"></p>
+          <p class="nb-search-keys" id="nb-search-keys">↓ до результатів · Tab до дій</p>
+        </div>
+        <div id="nb-results"></div>
+        <div id="nb-symptom-action" hidden>
+          <button class="nb-secondary" id="nb-start-symptom" type="button" aria-controls="nb-symptom-picker" aria-expanded="false">Зберегти як симптом</button>
+          <form id="nb-symptom-picker" hidden>
+            <p class="nb-symptom-value">Симптом — <strong id="nb-symptom-value"></strong></p>
+            <label>Знайти нотатку<input type="search" id="nb-symptom-find" placeholder="Назва або команда" autocomplete="off"></label>
+            <label>Нотатка<select id="nb-symptom-note" required></select></label>
+            <p class="nb-editor-hint" id="nb-symptom-selection" hidden></p>
+            <p class="nb-form-error" id="nb-symptom-error" role="alert" hidden></p>
+            <p class="nb-editor-hint">Симптом стане доступним у публічному пошуку після збірки.</p>
+            <div class="nb-editor-actions">
+              <button class="nb-primary" id="nb-link-symptom" type="button" disabled>Прив’язати до нотатки</button>
+              <button class="nb-secondary" id="nb-cancel-symptom" type="button">Скасувати</button>
+            </div>
+          </form>
+        </div>
+        <button class="nb-secondary" type="button" id="nb-more-results" hidden>Показати решту</button>
+      </section>
+      <section id="nb-editor-view" hidden>
+        <div class="nb-location"><span id="nb-editor-context"></span><span aria-hidden="true">/</span><span>Редагування</span></div>
+        <h1 id="nb-editor-heading">Редагувати нотатку</h1>
+        <form id="nb-editor">
+          <label>Назва<input name="title" required maxlength="200" placeholder="Наприклад: Перезапустити DNS"></label>
+          <label>Розділ<select name="book" id="nb-edit-book"></select></label>
+          <fieldset class="nb-editor-platforms">
+            <legend>Платформи</legend>
+            <label><input type="checkbox" name="platform" value="linux">Linux</label>
+            <label><input type="checkbox" name="platform" value="windows">Windows</label>
+            <label><input type="checkbox" name="platform" value="macos">macOS</label>
+          </fieldset>
+          <label>Команда або клавіші <span class="nb-optional">необов’язково</span><textarea name="command" class="nb-mono" rows="3" maxlength="4000" placeholder="sudo systemctl restart systemd-resolved"></textarea></label>
+          <div class="nb-edit-symptoms">
+            <label for="nb-edit-symptoms">Симптоми</label>
+            <p class="nb-editor-hint" id="nb-symptoms-hint">Одне формулювання на рядок.</p>
+            <textarea id="nb-edit-symptoms" name="symptoms" rows="3" maxlength="2000" aria-describedby="nb-symptoms-hint" placeholder="внутрішній сайт не відкривається за назвою"></textarea>
+          </div>
+          <label>Пояснення<textarea name="description" rows="7" maxlength="8000" placeholder="Що робить команда і коли вона потрібна. Можна використовувати Markdown."></textarea></label>
+          <details class="nb-extra"><summary>Джерело за потреби</summary><label>Посилання<input name="source" type="url" placeholder="https://…"></label></details>
+          <p class="nb-form-error" id="nb-form-error" role="alert"></p>
+          <div class="nb-editor-actions"><button class="nb-primary" id="nb-save" type="button">Зберегти</button><button class="nb-secondary" id="nb-cancel" type="button">Скасувати</button></div>
+          <p class="nb-editor-hint">Збережені зміни публікуються в OpsCards після збірки.</p>
+        </form>
+      </section>
+    </main>
+  </div>
+  <footer class="nb-footer"><span>Технічний блокнот</span><span id="nb-status" role="status" aria-live="polite">Оберіть сторінку, шукайте або редагуйте запис.</span></footer>
+  <div class="nb-confirm" id="nb-confirm" hidden role="alertdialog" aria-modal="true" aria-labelledby="nb-confirm-title"><div class="nb-confirm-content"><h2 id="nb-confirm-title">Залишити незбережені зміни?</h2><p>Текст у формі ще не збережений.</p><div><button class="nb-secondary" id="nb-stay" type="button">Продовжити редагування</button><button class="nb-primary" id="nb-leave" type="button">Вийти без збереження</button></div></div></div>
+</div>
+<script type="application/json" id="nb-records" set:html={data} is:inline></script>
+<script src="/notebook.js" type="module" is:inline></script>
