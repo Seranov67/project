@@ -1,7 +1,19 @@
+.notebook-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+.notebook-page :is(.header-inner, .footer-inner) {
+  width: 100%;
+  padding-inline: clamp(14px, 2.2vw, 22px);
+}
+
 #opscards-quick-access {
     color-scheme:inherit; --nb-bg:light-dark(#ffffff,#191c22); --nb-side:light-dark(#f5f7fa,#14171d); --nb-ink:light-dark(#202c3d,#e5eaf2); --nb-muted:light-dark(#647186,#a2aec1); --nb-line:light-dark(#e5eaf0,#303641); --nb-soft:light-dark(#edf2f8,#242c39); --nb-blue:light-dark(#3158a6,#9bbaff); --nb-active:light-dark(#e6edf9,#26364f); --nb-code:light-dark(#f2f5f9,#10151d); --nb-alert:light-dark(#9a5b18,#e3b46c); --nb-alert-bg:light-dark(#faf5e9,#302a20); --nb-fg-on-primary:light-dark(#fff,#121b2e); --nb-primary:light-dark(#253f73,#aec7fa);
-    --nb-text-size:15px; --nb-reading-width:720px;
-    background:var(--nb-bg); color:var(--nb-ink); font:400 var(--nb-text-size)/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; border:1px solid var(--nb-line); border-radius:12px; overflow:clip; position:relative; isolation:isolate; width:min(100% - 1.25rem, 74rem); margin:1rem auto 2rem;
+    --nb-text-size:15px;
+    background:var(--nb-bg); color:var(--nb-ink); font:400 var(--nb-text-size)/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; overflow:clip; position:relative; isolation:isolate;
+    display:flex; flex:1 0 auto; flex-direction:column; width:100%;
   }
   #opscards-quick-access *,#opscards-quick-access *::before,#opscards-quick-access *::after {box-sizing:border-box;}
   #opscards-quick-access [hidden] {display:none!important;}
@@ -21,7 +33,7 @@
   #opscards-quick-access .nb-primary {background:var(--nb-primary);color:var(--nb-fg-on-primary);border:1px solid var(--nb-primary);}
   #opscards-quick-access .nb-secondary {background:var(--nb-bg);color:var(--nb-ink);border:1px solid var(--nb-line);}
   #opscards-quick-access .nb-secondary:hover {background:var(--nb-soft);}
-  #opscards-quick-access .nb-layout {display:grid;grid-template-columns:210px minmax(0,1fr);min-height:575px;}
+  #opscards-quick-access .nb-layout {display:grid;flex:1;grid-template-columns:clamp(210px,14vw,264px) minmax(0,1fr);min-height:575px;}
   #opscards-quick-access .nb-sidebar {padding:24px 12px;background:var(--nb-side);border-right:1px solid var(--nb-line);display:flex;flex-direction:column;gap:15px;}
   #opscards-quick-access .nb-side-label {font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--nb-muted);padding-inline:10px;}
   #opscards-quick-access .nb-home-nav {display:grid;gap:4px;}
@@ -40,7 +52,6 @@
   #opscards-quick-access .nb-page-picker {display:flex;align-items:center;gap:12px;padding:10px 0 18px;margin-bottom:24px;border-bottom:1px solid var(--nb-line);color:var(--nb-muted);font-size:12px;}
   #opscards-quick-access .nb-page-picker>span {flex-shrink:0;}
   #opscards-quick-access .nb-page-picker select {color:var(--nb-ink);background:var(--nb-side);border:1px solid var(--nb-line);padding:7px 8px;border-radius:5px;width:100%;min-width:0;}
-  #opscards-quick-access .nb-document {max-width:var(--nb-reading-width);margin-inline:auto;}
   #opscards-quick-access .nb-note-meta {display:flex;align-items:center;flex-wrap:wrap;gap:10px;color:var(--nb-muted);font-size:11px;margin-bottom:12px;}
   #opscards-quick-access .nb-platform {font-weight:500;}
   #opscards-quick-access .nb-note-meta>span+span::before {content:'·';margin-right:10px;}
@@ -67,7 +78,7 @@
   #opscards-quick-access pre {margin:0;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;tab-size:2;}
   #opscards-quick-access .nb-command-block pre {padding:16px;}
   #opscards-quick-access code,#opscards-quick-access .nb-mono {font:13px/1.8 ui-monospace,SFMono-Regular,Consolas,monospace;}
-  #opscards-quick-access .nb-prose {overflow-wrap:anywhere;}
+  #opscards-quick-access .nb-prose {max-width:88ch;overflow-wrap:anywhere;}
   #opscards-quick-access .nb-prose p {margin:0 0 14px;}
   #opscards-quick-access .nb-prose h3 {font-size:17px;font-weight:600;margin:20px 0 10px;}
   #opscards-quick-access .nb-prose blockquote {margin:0 0 18px;padding:12px 15px;background:var(--nb-alert-bg);border-left:3px solid var(--nb-alert);color:var(--nb-ink);font-size:13px;border-radius:0 5px 5px 0;}
